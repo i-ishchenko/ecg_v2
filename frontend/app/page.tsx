@@ -1,8 +1,12 @@
 "use client";
 
 import axios from "axios";
+import dynamic from "next/dynamic";
 import { FormEvent, useRef, useState } from "react";
-import MyChart from "./components/Chart.jsx";
+
+const Chart = dynamic(() => import("./components/Chart"), {
+  ssr: false,
+});
 
 export default function Home() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -34,7 +38,7 @@ export default function Home() {
         <input ref={fileRef} type="file" name="ecg" accept=".txt, .json" />
         <button type="submit">Submit</button>
       </form>
-      {ecg ? <MyChart data={ecg} /> : <p>Chart</p>}
+      {ecg ? <Chart data={ecg} /> : <p>Chart</p>}
     </main>
   );
 }

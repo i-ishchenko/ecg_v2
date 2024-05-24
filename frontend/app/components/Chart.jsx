@@ -1,15 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Chart, ChartItem, registerables } from "chart.js";
-import annotationPlugin, { AnnotationOptions } from "chartjs-plugin-annotation";
+import { Chart, registerables } from "chart.js";
+import annotationPlugin from "chartjs-plugin-annotation";
 import zoomPlugin from "chartjs-plugin-zoom";
-import { ChartData } from "../types/ChartData";
 
 // Register all necessary components
 Chart.register(...registerables, annotationPlugin, zoomPlugin);
 
 const MyChart = ({ data: tsData }) => {
-  const chartRef = useRef(null);
-  const [selectedLine, setSelectedLine] = useState(null);
+  const chartRef = useRef();
+  const [selectedLine, setSelectedLine] = useState();
 
   useEffect(() => {
     if (!tsData || !chartRef.current) return;
@@ -37,7 +36,7 @@ const MyChart = ({ data: tsData }) => {
 
     const ctx = chartRef.current.getContext("2d");
 
-    const chartInstance = new Chart(ctx , {
+    const chartInstance = new Chart(ctx, {
       type: "line",
       data: {
         labels: labeledData.map((d) => d.index),
@@ -54,9 +53,7 @@ const MyChart = ({ data: tsData }) => {
             label: "P Peaks",
             data: labeledData
               .filter((d) => d.pPeak !== null)
-              .map(
-                (d) => ({ x: d.index, y: d.pPeak })
-              ),
+              .map((d) => ({ x: d.index, y: d.pPeak })),
             borderColor: "blue",
             backgroundColor: "blue",
             borderWidth: 0,
@@ -67,9 +64,7 @@ const MyChart = ({ data: tsData }) => {
             label: "Q Peaks",
             data: labeledData
               .filter((d) => d.qPeak !== null)
-              .map(
-                (d) => ({ x: d.index, y: d.qPeak })
-              ),
+              .map((d) => ({ x: d.index, y: d.qPeak })),
             borderColor: "yellow",
             backgroundColor: "yellow",
             borderWidth: 0,
@@ -80,9 +75,7 @@ const MyChart = ({ data: tsData }) => {
             label: "S Peaks",
             data: labeledData
               .filter((d) => d.sPeak !== null)
-              .map(
-                (d) => ({ x: d.index, y: d.sPeak })
-              ),
+              .map((d) => ({ x: d.index, y: d.sPeak })),
             borderColor: "green",
             backgroundColor: "green",
             borderWidth: 0,
@@ -93,9 +86,7 @@ const MyChart = ({ data: tsData }) => {
             label: "T Peaks",
             data: labeledData
               .filter((d) => d.tPeak !== null)
-              .map(
-                (d) => ({ x: d.index, y: d.tPeak })
-              ),
+              .map((d) => ({ x: d.index, y: d.tPeak })),
             borderColor: "pink",
             backgroundColor: "pink",
             borderWidth: 0,
@@ -127,38 +118,35 @@ const MyChart = ({ data: tsData }) => {
           annotation: {
             annotations: labeledData
               .filter((d) => d.isRPeak)
-              .map(
-                (d, idx) => ({
-                  type: "line",
-                  xMin: d.index,
-                  xMax: d.index,
-                  borderColor:
-                    selectedLine === `R${idx + 1}` ? "blue" : "white",
-                  borderWidth: 1,
-                  label: {
-                    content: `R${idx + 1}`,
-                    display: true,
-                    position: "start",
-                    yAdjust: -10,
-                    backgroundColor: "rgba(0, 0, 0, 0.8)",
-                    color: selectedLine === `R${idx + 1}` ? "blue" : "white",
-                    padding: 6,
-                    font: {
-                      size: 10,
-                    },
+              .map((d, idx) => ({
+                type: "line",
+                xMin: d.index,
+                xMax: d.index,
+                borderColor: "lightgray",
+                borderWidth: 1,
+                label: {
+                  content: `R${idx + 1}`,
+                  display: true,
+                  position: "start",
+                  yAdjust: -10,
+                  backgroundColor: "rgba(0, 0, 0, 0.8)",
+                  color: "white",
+                  padding: 6,
+                  font: {
+                    size: 10,
                   },
-                  click: () => {
-                    setSelectedLine(`R${idx + 1}`);
-                    console.log(`R${idx + 1}`);
-                  },
-                  enter: () => {
-                    document.body.style.cursor = "pointer";
-                  },
-                  leave: () => {
-                    document.body.style.cursor = "default";
-                  },
-                })
-              ),
+                },
+                click: () => {
+                  setSelectedLine(`R${idx + 1}`);
+                  console.log(`R${idx + 1}`);
+                },
+                enter: () => {
+                  document.body.style.cursor = "pointer";
+                },
+                leave: () => {
+                  document.body.style.cursor = "default";
+                },
+              })),
           },
           zoom: {
             pan: {
@@ -191,21 +179,16 @@ const MyChart = ({ data: tsData }) => {
 
     const chartInstance = Chart.getChart(chartRef.current);
 
-    if (
-      !chartInstance ||
-      !chartInstance.options.plugins?.annotation ||
-      !chartInstance.options.plugins.annotation.annotations
-    )
-      return;
-
     // Update the annotation colors based on selected line
     chartInstance.options.plugins.annotation.annotations.forEach(
       (annotation) => {
         if (annotation.label) {
           annotation.borderColor =
-            selectedLine === annotation.label.content ? "blue" : "white";
-          annotation.label.color =
-            selectedLine === annotation.label.content ? "blue" : "white";
+            selectedLine === annotation.label.content ? "blue" : "lightgray";
+          annotation.label.backgroundColor =
+            selectedLine === annotation.label.content
+              ? "blue"
+              : "rgba(0, 0, 0, 0.8)";
         }
       }
     );
