@@ -9,6 +9,15 @@ class ProcessView(views.APIView):
             ecg = np.array(request.data.get("ecg"), dtype=float)
             sampling_rate = request.data.get("sampling_rate")
             signals, info = nk.ecg_process(ecg, sampling_rate)
-            return Response({"ecg_clean": signals["ECG_Clean"]}, status=status.HTTP_200_OK)
+            print(signals)
+            return Response(
+               {
+                  "ecg_clean": signals["ECG_Clean"], 
+                  "r_peaks": signals["ECG_R_Peaks"], 
+                  "p_peaks": signals["ECG_P_Peaks"],
+                  "q_peaks": signals["ECG_Q_Peaks"],
+                  "s_peaks": signals["ECG_S_Peaks"],
+                  "t_peaks": signals["ECG_T_Peaks"]
+               }, status=status.HTTP_200_OK)
          except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
