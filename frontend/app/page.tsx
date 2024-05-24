@@ -1,10 +1,12 @@
 "use client";
 
 import axios from "axios";
-import { FormEvent, useRef } from "react";
+import { FormEvent, useRef, useState } from "react";
+import Chart from "./components/Chart";
 
 export default function Home() {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [ecg, setECG] = useState<any>()
 
   async function sendECG(e: FormEvent) {
     e.preventDefault();
@@ -15,21 +17,21 @@ export default function Home() {
       const data = await file.text();
 
       if (file.type === "application/json") {
-        console.log("ready to send");
         const parsed_data = JSON.parse(data);
-        const res = await axios.post("http://localhost:8000/predict/", parsed_data);
-        console.log(res.data);
+        const res = await axios.post("http://localhost:8000/process/", parsed_data);
+        setECG(res.data);
       } else {
       }
     }
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main>
       <form onSubmit={sendECG}>
         <input ref={fileRef} type="file" name="ecg" accept=".txt, .json" />
         <button type="submit">Submit</button>
       </form>
+      {ecg ? <Chart data={ecg} /> : <p>Chart</p>}
     </main>
   );
 }
