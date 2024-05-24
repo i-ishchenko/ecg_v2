@@ -2,6 +2,7 @@ from rest_framework import views, status
 from rest_framework.response import Response
 import neurokit2 as nk
 import numpy as np
+import matplotlib.pyplot as plt
 
 class ProcessView(views.APIView):
     def post(self, request, *args, **kwargs):
@@ -9,7 +10,10 @@ class ProcessView(views.APIView):
             ecg = np.array(request.data.get("ecg"), dtype=float)
             sampling_rate = request.data.get("sampling_rate")
             signals, info = nk.ecg_process(ecg, sampling_rate)
-            print(signals)
+            nk.ecg_plot(signals)
+            fig = plt.gcf()
+            fig.set_size_inches(15, 12, forward=True)
+            fig.savefig("myfig.png")
             return Response(
                {
                   "ecg_clean": signals["ECG_Clean"], 
