@@ -2,12 +2,20 @@ import { FormEvent, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { ECGFormDataType } from "@/app/types/ECGFormDataType";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { ECGFormDataType } from "@/types/ECGFormDataType";
 
-export default function ECGDataForm(props: { ecgSend: (data: ECGFormDataType) => Promise<void> }) {
-  const [samplingFq, setSamplingFq] = useState<number>(360); 
-  const [cleaningMethod, setCleaningMethod] = useState<string>("neurokit"); 
+export default function ECGDataForm(props: {
+  ecgSend: (data: ECGFormDataType) => Promise<void>;
+}) {
+  const [samplingFq, setSamplingFq] = useState<number>(360);
+  const [cleaningMethod, setCleaningMethod] = useState<string>("neurokit");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const onSubmit = async (e: FormEvent) => {
@@ -17,14 +25,17 @@ export default function ECGDataForm(props: { ecgSend: (data: ECGFormDataType) =>
     if (files) {
       const file = files[0];
       const ecgText = await file.text();
-      const ecgArr = ecgText.replaceAll(/\s|\[|\]/g, "").split(",").map(v => +v)
+      const ecgArr = ecgText
+        .replaceAll(/\s|\[|\]/g, "")
+        .split(",")
+        .map((v) => +v);
       props.ecgSend({
         sampling_rate: samplingFq,
         ecg: ecgArr,
-        cleaning_method: cleaningMethod
-      })
+        cleaning_method: cleaningMethod,
+      });
     }
-  }
+  };
 
   return (
     <form

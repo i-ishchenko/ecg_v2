@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import { FormEvent, useRef, useState } from "react";
-import { ECGFormDataType } from "./types/ECGFormDataType";
+import { ECGFormDataType } from "../types/ECGFormDataType";
 
 const Chart = dynamic(() => import("../components/Chart"), {
   ssr: false,
@@ -16,7 +16,6 @@ export default function Home() {
 
   async function sendECG(data: ECGFormDataType) {
     const res = await axios.post("http://localhost:8000/process/", data);
-    console.log(res.data);
     setECG(res.data);
   }
 
@@ -24,7 +23,7 @@ export default function Home() {
     <main>
       <ECGDataForm ecgSend={sendECG} />
       {ecg && (
-        <Tabs defaultValue="general" className="flex flex-col mt-10">
+        <Tabs defaultValue="general" className="flex flex-col mt-10 mb-20">
           <TabsList className="mx-auto justify-self-center mb-3">
             <TabsTrigger value="general">General Info</TabsTrigger>
             <TabsTrigger value="interactive">Interactive Chart</TabsTrigger>
