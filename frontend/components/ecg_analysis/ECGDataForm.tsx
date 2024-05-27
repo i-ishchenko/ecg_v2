@@ -1,14 +1,14 @@
 import { FormEvent, useRef, useState } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from "../ui/select";
 import { ECGFormDataType } from "@/types/ECGFormDataType";
 
 export default function ECGDataForm(props: {
@@ -49,6 +49,7 @@ export default function ECGDataForm(props: {
         <Input
           id="sf"
           type="number"
+          required
           min={0}
           value={samplingFq}
           onChange={(e) => setSamplingFq(+e.target.value)}
@@ -70,6 +71,7 @@ export default function ECGDataForm(props: {
       <div className="mb-3 w-full">
         <Label className="block mb-1 text-md">Cleaning Method</Label>
         <Select
+          required
           value={cleaningMethod}
           onValueChange={(val) => setCleaningMethod(val)}>
           <SelectTrigger>

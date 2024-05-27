@@ -1,22 +1,35 @@
 "use client";
 
-import ECGDataForm from "@/components/ECGDataForm";
+import ECGDataForm from "@/components/ecg_analysis/ECGDataForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
 import dynamic from "next/dynamic";
-import { FormEvent, useRef, useState } from "react";
+import { useState } from "react";
 import { ECGFormDataType } from "../types/ECGFormDataType";
 
-const Chart = dynamic(() => import("../components/Chart"), {
-  ssr: false,
-});
+const InteractiveTab = dynamic(
+  () => import("@/components/ecg_analysis/InteractiveTab"),
+  {
+    ssr: false,
+  }
+);
 
 export default function Home() {
   const [ecg, setECG] = useState<any>();
+  const [predictions, setPredictions] = useState<any>();
 
   async function sendECG(data: ECGFormDataType) {
     const res = await axios.post("http://localhost:8000/process/", data);
     setECG(res.data);
+  }
+
+  async function predictHandler() {
+    const res = await axios.post("http://localhost:8000/predict/", {
+      ecg: ecg.ecg_clean,
+      sampling_rate: ecg.sampling_frequency,
+    });
+    console.log(res.data)
+    setPredictions(res.data.predictions);
   }
 
   return (
@@ -38,7 +51,7 @@ export default function Home() {
           <TabsContent
             value="interactive"
             className="w-[80vw] max-h-[80vh] mx-auto">
-            <Chart data={ecg} />
+            <InteractiveTab ecg={ecg} predictions={predictions} onPredict={predictHandler} />
           </TabsContent>
         </Tabs>
       )}

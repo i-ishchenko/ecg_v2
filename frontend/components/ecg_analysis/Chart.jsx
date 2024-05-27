@@ -6,7 +6,7 @@ import zoomPlugin from "chartjs-plugin-zoom";
 // Register all necessary components
 Chart.register(...registerables, annotationPlugin, zoomPlugin);
 
-const MyChart = ({ data: tsData }) => {
+const MyChart = ({ data: tsData, predictions }) => {
   const chartRef = useRef();
   const [selectedLine, setSelectedLine] = useState();
 
@@ -179,6 +179,24 @@ const MyChart = ({ data: tsData }) => {
 
     const chartInstance = Chart.getChart(chartRef.current);
 
+    if (predictions) {
+      for (
+        let i = 0;
+        i < chartInstance.options.plugins.annotation.annotations.length;
+        i++
+      ) {
+        if (chartInstance.options.plugins.annotation.annotations[i].label) {
+          chartInstance.options.plugins.annotation.annotations[i].borderColor =
+            predictions[i].isNormal ? "green" : "red";
+          chartInstance.options.plugins.annotation.annotations[
+            i
+          ].label.backgroundColor = predictions[i].isNormal ? "green" : "red";
+        }
+      }
+      chartInstance.update("none");
+      return;
+    }
+
     // Update the annotation colors based on selected line
     chartInstance.options.plugins.annotation.annotations.forEach(
       (annotation) => {
@@ -194,7 +212,7 @@ const MyChart = ({ data: tsData }) => {
     );
 
     chartInstance.update("none"); // Update without animation
-  }, [selectedLine]);
+  }, [selectedLine, predictions]);
 
   return <canvas ref={chartRef}></canvas>;
 };
