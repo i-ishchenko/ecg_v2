@@ -196,11 +196,7 @@ const MyChart = ({ data: tsData }) => {
     chartInstance.update("none"); // Update without animation
   }, [selectedLine]);
 
-  return (
-    <div className="w-[80%] m-auto">
-      <canvas ref={chartRef}></canvas>
-    </div>
-  );
+  return <canvas ref={chartRef}></canvas>;
 };
 
 export default MyChart;

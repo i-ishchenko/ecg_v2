@@ -1,11 +1,12 @@
 "use client";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { FormEvent, useRef, useState } from "react";
 
-const Chart = dynamic(() => import("./components/Chart"), {
+const Chart = dynamic(() => import("../components/Chart"), {
   ssr: false,
 });
 
@@ -41,13 +42,23 @@ export default function Home() {
         <button type="submit">Submit</button>
       </form>
       {ecg && (
-        <img
-          className="w-[80vw] max-h-[80vh] m-auto object-contain"
-          src={`data:image/jpeg;base64,${ecg.image}`}
-          alt="additional chart"
-        />
+        <Tabs defaultValue="general" className="flex flex-col">
+          <TabsList className="mx-auto justify-self-center mb-3">
+            <TabsTrigger value="general">General Info</TabsTrigger>
+            <TabsTrigger value="interactive">Interactive Chart</TabsTrigger>
+          </TabsList>
+          <TabsContent value="general">
+            <img
+              className="w-[80vw] max-h-[80vh] m-auto object-contain"
+              src={`data:image/jpeg;base64,${ecg.image}`}
+              alt="additional chart"
+            />
+          </TabsContent>
+          <TabsContent value="interactive" className="w-[80vw] max-h-[80vh] mx-auto">
+            <Chart data={ecg} />
+          </TabsContent>
+        </Tabs>
       )}
-      {ecg ? <Chart data={ecg} /> : <p>Chart</p>}
     </main>
   );
 }
