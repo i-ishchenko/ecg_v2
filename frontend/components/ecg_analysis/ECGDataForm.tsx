@@ -12,7 +12,8 @@ import {
 import { ECGFormDataType } from "@/types/ECGFormDataType";
 
 export default function ECGDataForm(props: {
-  ecgSend: (data: ECGFormDataType) => Promise<void>;
+  ecgSend: (data: ECGFormDataType) => void;
+  isLoading: boolean;
 }) {
   const [samplingFq, setSamplingFq] = useState<number>(360);
   const [cleaningMethod, setCleaningMethod] = useState<string>("neurokit");
@@ -86,7 +87,9 @@ export default function ECGDataForm(props: {
           </SelectContent>
         </Select>
       </div>
-      <Button type="submit">Submit</Button>
+      <Button type="submit" isLoading={props.isLoading}>
+        Submit
+      </Button>
     </form>
   );
 }

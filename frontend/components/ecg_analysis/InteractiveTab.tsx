@@ -5,11 +5,15 @@ export default function InteractiveTab(props: {
   ecg: any;
   predictions: any;
   onPredict: () => void;
+  isLoading: boolean;
 }) {
   return (
     <div>
       <Chart predictions={props.predictions} data={props.ecg} />
-      <Button className="mt-3" onClick={props.onPredict}>
+      <Button
+        className="mt-3"
+        isLoading={props.isLoading}
+        onClick={props.onPredict}>
         Predict all segments
       </Button>
     </div>
