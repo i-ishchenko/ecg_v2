@@ -65,8 +65,8 @@ const MyChart = ({ data: tsData }) => {
             data: labeledData
               .filter((d) => d.qPeak !== null)
               .map((d) => ({ x: d.index, y: d.qPeak })),
-            borderColor: "yellow",
-            backgroundColor: "yellow",
+            borderColor: "red",
+            backgroundColor: "red",
             borderWidth: 0,
             pointRadius: 3,
             showLine: false,
@@ -87,8 +87,8 @@ const MyChart = ({ data: tsData }) => {
             data: labeledData
               .filter((d) => d.tPeak !== null)
               .map((d) => ({ x: d.index, y: d.tPeak })),
-            borderColor: "pink",
-            backgroundColor: "pink",
+            borderColor: "black",
+            backgroundColor: "black",
             borderWidth: 0,
             pointRadius: 3,
             showLine: false,
@@ -128,8 +128,8 @@ const MyChart = ({ data: tsData }) => {
                   content: `R${idx + 1}`,
                   display: true,
                   position: "start",
-                  yAdjust: -10,
-                  backgroundColor: "rgba(0, 0, 0, 0.8)",
+                  yAdjust: -15,
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
                   color: "white",
                   padding: 6,
                   font: {
