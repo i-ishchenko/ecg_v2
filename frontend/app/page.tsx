@@ -1,48 +1,30 @@
 "use client";
 
+import ECGDataForm from "@/components/ECGDataForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import { FormEvent, useRef, useState } from "react";
+import { ECGFormDataType } from "./types/ECGFormDataType";
 
 const Chart = dynamic(() => import("../components/Chart"), {
   ssr: false,
 });
 
 export default function Home() {
-  const fileRef = useRef<HTMLInputElement>(null);
   const [ecg, setECG] = useState<any>();
 
-  async function sendECG(e: FormEvent) {
-    e.preventDefault();
-
-    const files = fileRef.current?.files;
-    if (files) {
-      const file = files[0];
-      const data = await file.text();
-
-      if (file.type === "application/json") {
-        const parsed_data = JSON.parse(data);
-        const res = await axios.post(
-          "http://localhost:8000/process/",
-          parsed_data
-        );
-        console.log(res.data);
-        setECG(res.data);
-      } else {
-      }
-    }
+  async function sendECG(data: ECGFormDataType) {
+    const res = await axios.post("http://localhost:8000/process/", data);
+    console.log(res.data);
+    setECG(res.data);
   }
 
   return (
     <main>
-      <form onSubmit={sendECG}>
-        <input ref={fileRef} type="file" name="ecg" accept=".txt, .json" />
-        <button type="submit">Submit</button>
-      </form>
+      <ECGDataForm ecgSend={sendECG} />
       {ecg && (
-        <Tabs defaultValue="general" className="flex flex-col">
+        <Tabs defaultValue="general" className="flex flex-col mt-10">
           <TabsList className="mx-auto justify-self-center mb-3">
             <TabsTrigger value="general">General Info</TabsTrigger>
             <TabsTrigger value="interactive">Interactive Chart</TabsTrigger>
@@ -54,7 +36,9 @@ export default function Home() {
               alt="additional chart"
             />
           </TabsContent>
-          <TabsContent value="interactive" className="w-[80vw] max-h-[80vh] mx-auto">
+          <TabsContent
+            value="interactive"
+            className="w-[80vw] max-h-[80vh] mx-auto">
             <Chart data={ecg} />
           </TabsContent>
         </Tabs>

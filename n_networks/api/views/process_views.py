@@ -11,7 +11,8 @@ class ProcessView(views.APIView):
          try: 
             ecg = np.array(request.data.get("ecg"), dtype=float)
             sampling_rate = request.data.get("sampling_rate")
-            signals, info = nk.ecg_process(ecg, sampling_rate)
+            cleaning_method = request.data.get("cleaning_method")
+            signals, info = nk.ecg_process(ecg, sampling_rate, cleaning_method)
             nk.ecg_plot(signals, info)
             fig = plt.gcf()
             fig.set_size_inches(16, 10, forward=True)
