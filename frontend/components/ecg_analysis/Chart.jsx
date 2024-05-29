@@ -100,7 +100,6 @@ const MyChart = ({ data: tsData, predictions }) => {
                 },
                 click: () => {
                   setSelectedLine(`R${idx + 1}`);
-                  console.log(`R${idx + 1}`);
                 },
                 enter: () => {
                   document.body.style.cursor = "pointer";
@@ -143,7 +142,7 @@ const MyChart = ({ data: tsData, predictions }) => {
     const pointOptions = (color) => ({
       backgroundColor: color,
       borderWidth: 0,
-      pointRadius: 10,
+      pointRadius: 5,
       showLine: false,
     });
 
