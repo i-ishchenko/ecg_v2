@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
 import annotationPlugin from "chartjs-plugin-annotation";
 import zoomPlugin from "chartjs-plugin-zoom";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Settings } from "lucide-react";
+import { Button } from "../ui/button";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
 
 // Register all necessary components
 Chart.register(...registerables, annotationPlugin, zoomPlugin);
@@ -9,13 +14,19 @@ Chart.register(...registerables, annotationPlugin, zoomPlugin);
 const MyChart = ({ data: tsData, predictions }) => {
   const chartRef = useRef();
   const [selectedLine, setSelectedLine] = useState();
+  const [showP, setShowP] = useState(true);
+  const [showQ, setShowQ] = useState(true);
+  const [showS, setShowS] = useState(true);
+  const [showT, setShowT] = useState(true);
+  const [labeledData, setLabeledData] = useState([]);
 
+  // Initial chart configuration
   useEffect(() => {
-    if (!tsData || !chartRef.current) return;
+    if (typeof window === "undefined" || !tsData || !chartRef.current) return;
 
     const { ecg_clean, r_peaks, p_peaks, q_peaks, s_peaks, t_peaks } = tsData;
 
-    const labeledData = ecg_clean.map((value, index) => ({
+    const initialLabeledData = ecg_clean.map((value, index) => ({
       index: index,
       ecgValue: value,
       isRPeak: r_peaks[index] === 1,
@@ -27,73 +38,24 @@ const MyChart = ({ data: tsData, predictions }) => {
 
     // Assign ordinal numbers to R peaks
     let ordinal = 0;
-    labeledData.forEach((d) => {
+    initialLabeledData.forEach((d) => {
       if (d.isRPeak) {
         ordinal += 1;
         d.label = ordinal.toString(); // convert to string for labeling
       }
     });
 
+    // use state to always use complete data
+    // was causing problems when using single variable
+    setLabeledData(initialLabeledData);
+
     const ctx = chartRef.current.getContext("2d");
 
     const chartInstance = new Chart(ctx, {
       type: "line",
       data: {
-        labels: labeledData.map((d) => d.index),
-        datasets: [
-          {
-            label: "ECG",
-            data: labeledData.map((d) => d.ecgValue),
-            borderColor: "red",
-            borderWidth: 1,
-            fill: false,
-            pointRadius: 0,
-          },
-          {
-            label: "P Peaks",
-            data: labeledData
-              .filter((d) => d.pPeak !== null)
-              .map((d) => ({ x: d.index, y: d.pPeak })),
-            borderColor: "blue",
-            backgroundColor: "blue",
-            borderWidth: 0,
-            pointRadius: 3,
-            showLine: false,
-          },
-          {
-            label: "Q Peaks",
-            data: labeledData
-              .filter((d) => d.qPeak !== null)
-              .map((d) => ({ x: d.index, y: d.qPeak })),
-            borderColor: "red",
-            backgroundColor: "red",
-            borderWidth: 0,
-            pointRadius: 3,
-            showLine: false,
-          },
-          {
-            label: "S Peaks",
-            data: labeledData
-              .filter((d) => d.sPeak !== null)
-              .map((d) => ({ x: d.index, y: d.sPeak })),
-            borderColor: "green",
-            backgroundColor: "green",
-            borderWidth: 0,
-            pointRadius: 3,
-            showLine: false,
-          },
-          {
-            label: "T Peaks",
-            data: labeledData
-              .filter((d) => d.tPeak !== null)
-              .map((d) => ({ x: d.index, y: d.tPeak })),
-            borderColor: "black",
-            backgroundColor: "black",
-            borderWidth: 0,
-            pointRadius: 3,
-            showLine: false,
-          },
-        ],
+        labels: initialLabeledData.map((d) => d.index),
+        datasets: [], // Initially empty, will be populated in updateDatasets
       },
       options: {
         responsive: true,
@@ -116,7 +78,7 @@ const MyChart = ({ data: tsData, predictions }) => {
             intersect: false,
           },
           annotation: {
-            annotations: labeledData
+            annotations: initialLabeledData
               .filter((d) => d.isRPeak)
               .map((d, idx) => ({
                 type: "line",
@@ -167,6 +129,8 @@ const MyChart = ({ data: tsData, predictions }) => {
       },
     });
 
+    updateDatasets(chartInstance, initialLabeledData);
+
     // Cleanup on component unmount
     return () => {
       chartInstance.destroy();
@@ -174,6 +138,91 @@ const MyChart = ({ data: tsData, predictions }) => {
     };
   }, [tsData]);
 
+  // Creates array of data for Chart based on state
+  const updateDatasets = (chartInstance, labeledData) => {
+    const pointOptions = (color) => ({
+      backgroundColor: color,
+      borderWidth: 0,
+      pointRadius: 10,
+      showLine: false,
+    });
+
+    const datasets = [
+      {
+        label: "ECG",
+        data: labeledData.map((d) => d.ecgValue),
+        borderColor: "red",
+        borderWidth: 1,
+        fill: false,
+        pointRadius: 0,
+      },
+    ];
+
+    if (showP) {
+      datasets.push({
+        label: "P Peaks",
+        data: labeledData
+          .filter((d) => d.pPeak !== null)
+          .map((d) => ({ x: d.index, y: d.pPeak })),
+        ...pointOptions("blue"),
+      });
+    }
+
+    if (showQ) {
+      datasets.push({
+        label: "Q Peaks",
+        data: labeledData
+          .filter((d) => d.qPeak !== null)
+          .map((d) => ({ x: d.index, y: d.qPeak })),
+        ...pointOptions("red"),
+      });
+    }
+
+    if (showS) {
+      datasets.push({
+        label: "S Peaks",
+        data: labeledData
+          .filter((d) => d.sPeak !== null)
+          .map((d) => ({ x: d.index, y: d.sPeak })),
+        ...pointOptions("green"),
+      });
+    }
+
+    if (showT) {
+      datasets.push({
+        label: "T Peaks",
+        data: labeledData
+          .filter((d) => d.tPeak !== null)
+          .map((d) => ({ x: d.index, y: d.tPeak })),
+        ...pointOptions("black"),
+      });
+    }
+
+    chartInstance.data.datasets = datasets;
+    chartInstance.update("none");
+  };
+
+  // handle toggling peak display
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    const chartInstance = Chart.getChart(chartRef.current);
+
+    // Preserve the current zoom state
+    const zoomState = {
+      x: chartInstance.scales.x.min,
+      y: chartInstance.scales.x.max,
+    };
+
+    updateDatasets(chartInstance, labeledData);
+
+    // Restore the zoom state
+    chartInstance.scales.x.min = zoomState.x;
+    chartInstance.scales.x.max = zoomState.y;
+    chartInstance.update("none");
+  }, [showP, showQ, showS, showT, labeledData]);
+
+  // handle annotation(R peaks) color changes on select & prediction
   useEffect(() => {
     if (!chartRef.current) return;
 
@@ -206,7 +255,7 @@ const MyChart = ({ data: tsData, predictions }) => {
           annotation.label.backgroundColor =
             selectedLine === annotation.label.content
               ? "blue"
-              : "rgba(0, 0, 0, 0.8)";
+              : "rgba(0, 0, 0, 0.5)";
         }
       }
     );
@@ -214,7 +263,59 @@ const MyChart = ({ data: tsData, predictions }) => {
     chartInstance.update("none"); // Update without animation
   }, [selectedLine, predictions]);
 
-  return <canvas ref={chartRef}></canvas>;
+  return (
+    <div className="relative">
+      <div className="absolute right-0 top-8">
+        <Popover>
+          <PopoverTrigger>
+            <Button>
+              <Settings color="white" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <h3 className="font-medium text-md  mb-4">
+              Select points to display:
+            </h3>
+            <div className="flex flex-wrap gap-5 mb-3">
+              <div className="flex items-center space-x-2 mb-2">
+                <Switch
+                  id="p_peaks"
+                  checked={showP}
+                  onCheckedChange={(val) => setShowP(val)}
+                />
+                <Label htmlFor="p_peaks">P peaks</Label>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <Switch
+                  id="q_peaks"
+                  checked={showQ}
+                  onCheckedChange={(val) => setShowQ(val)}
+                />
+                <Label htmlFor="q_peaks">Q peaks</Label>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <Switch
+                  id="s_peaks"
+                  checked={showS}
+                  onCheckedChange={(val) => setShowS(val)}
+                />
+                <Label htmlFor="s_peaks">S peaks</Label>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <Switch
+                  id="t_peaks"
+                  checked={showT}
+                  onCheckedChange={(val) => setShowT(val)}
+                />
+                <Label htmlFor="t_peaks">T peaks</Label>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+      <canvas ref={chartRef} />
+    </div>
+  );
 };
 
 export default MyChart;
