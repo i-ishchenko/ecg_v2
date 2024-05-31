@@ -8,6 +8,44 @@ from rest_framework.response import Response
 from tensorflow.keras.metrics import MeanAbsoluteError
 from tensorflow.keras.layers import Input
 
+class Autoencoder:
+    def __init__(self):
+        # Setup the model using TFSMLayer
+        model_folder_path = './ECG_anomaly_saved_model'
+        tfsmlayer = keras.layers.TFSMLayer(model_folder_path, call_endpoint='serving_default')
+
+        # Build a model around the TFSMLayer
+        inputs = Input(shape=(188,))
+        outputs = tfsmlayer(inputs)
+        self.model = keras.Model(inputs, outputs)
+
+    def process_input(self, X, num):
+        n = len(X)
+        desired_length = num
+        if n < desired_length:
+            padding = np.zeros(desired_length - n)
+            X = np.concatenate((X, padding))
+        elif n > desired_length:
+            X = X[:desired_length]
+        return np.array(X).reshape(1, desired_length) 
+
+    def predict(self, segment):
+        X = self.process_input(segment, 188)
+        X = np.array(X, dtype=np.float32).reshape(1, -1)
+        X_tensor = tf.convert_to_tensor(X, dtype=tf.float32)
+
+        # Predict with the model
+        pred_dict = self.model.predict(X_tensor, verbose=False)
+        pred = pred_dict['output_1']  # Extract the correct output tensor from the dictionary
+
+        # Compute Mean Absolute Error
+        mae = MeanAbsoluteError()
+        loss = mae(X_tensor, pred).numpy()  # Ensure both inputs are tensors
+        threshold = 0.052
+        result = {"isNormal": loss <= threshold}  # Check if loss is below threshold
+        return result
+
+
 class PredictView(views.APIView):
     def post(self, request, *args, **kwargs):
         ecg = np.array(request.data.get("ecg"), dtype=float)
@@ -17,32 +55,12 @@ class PredictView(views.APIView):
 
         results = []
 
-        # Setup the model using TFSMLayer
-        model_folder_path = './ECG_anomaly_saved_model'
-        tfsmlayer = keras.layers.TFSMLayer(model_folder_path, call_endpoint='serving_default')
-
-        # Build a model around the TFSMLayer
-        inputs = Input(shape=(188,))
-        outputs = tfsmlayer(inputs)
-        model = keras.Model(inputs, outputs)
+        autoencoder = Autoencoder()
 
         for i in range(len(segments)):
             try:
                 segment = self.normalize_data(segments[i])
-                # Prepare the input data
-                X = self.process_input(segment, 188)
-                X = np.array(X, dtype=np.float32).reshape(1, -1)
-                X_tensor = tf.convert_to_tensor(X, dtype=tf.float32)
-
-                # Predict with the model
-                pred_dict = model.predict(X_tensor, verbose=False)
-                pred = pred_dict['output_1']  # Extract the correct output tensor from the dictionary
-
-                # Compute Mean Absolute Error
-                mae = MeanAbsoluteError()
-                loss = mae(X_tensor, pred).numpy()  # Ensure both inputs are tensors
-                threshold = 0.052
-                result = {"isNormal": loss <= threshold}  # Check if loss is below threshold
+                result = autoencoder.predict(segment)
                 results.append(result)
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -75,17 +93,6 @@ class PredictView(views.APIView):
             segments.append(segment)
         
         return segments
-
-    def process_input(self, X, num):
-        X = self.normalize_data(X)
-        n = len(X)
-        desired_length = num
-        if n < desired_length:
-            padding = np.zeros(desired_length - n)
-            X = np.concatenate((X, padding))
-        elif n > desired_length:
-            X = X[:desired_length]
-        return np.array(X).reshape(1, desired_length) 
 
     def butter_filter(self, data, lowcut, highcut, fs, order=5):
         nyq = 0.5 * fs
