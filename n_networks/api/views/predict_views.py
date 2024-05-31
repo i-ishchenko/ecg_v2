@@ -12,30 +12,8 @@ class PredictView(views.APIView):
     def post(self, request, *args, **kwargs):
         ecg = np.array(request.data.get("ecg"), dtype=float)
         sampling_rate = request.data.get("sampling_rate")
-        
-        data125 = self.downsample_ecg(ecg, sampling_rate, 125)
-
-        data125_filtered = self.butter_filter(data125, 0.5, 40, 125, 2)
-        signals, info = nk.ecg_process(data125_filtered, 125)
-
-        r_peaks = info['ECG_R_Peaks']
-
-        rr_intervals = np.diff(r_peaks)
-        median_rr = np.median(rr_intervals)
-
-        segment_length = int(1.2 * median_rr)
-
-        segments = []
-        for peak in r_peaks:
-            start = max(0, peak - segment_length // 2)
-            end = min(len(data125_filtered), start + segment_length)
-
-            if end - start < segment_length:
-                segment = np.pad(data125_filtered[start:end], (0, segment_length - (end - start)), 'constant', constant_values=(0, 0))
-            else:
-                segment = data125_filtered[start:end]
-
-            segments.append(segment)
+    
+        segments = self.segment(ecg, sampling_rate)
 
         results = []
 
@@ -70,6 +48,33 @@ class PredictView(views.APIView):
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"predictions": results}, status=status.HTTP_200_OK)
+
+    def segment(self, ecg, sampling_rate):
+        data125 = self.downsample_ecg(ecg, sampling_rate, 125)
+
+        data125_filtered = self.butter_filter(data125, 0.5, 40, 125, 2)
+        signals, info = nk.ecg_process(data125_filtered, 125)
+
+        r_peaks = info['ECG_R_Peaks']
+
+        rr_intervals = np.diff(r_peaks)
+        median_rr = np.median(rr_intervals)
+
+        segment_length = int(1.2 * median_rr)
+
+        segments = []
+        for peak in r_peaks:
+            start = max(0, peak - segment_length // 2)
+            end = min(len(data125_filtered), start + segment_length)
+
+            if end - start < segment_length:
+                segment = np.pad(data125_filtered[start:end], (0, segment_length - (end - start)), 'constant', constant_values=(0, 0))
+            else:
+                segment = data125_filtered[start:end]
+
+            segments.append(segment)
+        
+        return segments
 
     def process_input(self, X, num):
         X = self.normalize_data(X)
