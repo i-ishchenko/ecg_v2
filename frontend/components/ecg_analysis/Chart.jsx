@@ -14,6 +14,8 @@ Chart.register(...registerables, annotationPlugin, zoomPlugin);
 const MyChart = ({ data: tsData, predictions }) => {
   const chartRef = useRef();
   const [selectedLine, setSelectedLine] = useState();
+  const [showClean, setShowClean] = useState(false);
+  const [showRaw, setShowRaw] = useState(true);
   const [showP, setShowP] = useState(true);
   const [showQ, setShowQ] = useState(true);
   const [showS, setShowS] = useState(true);
@@ -24,16 +26,22 @@ const MyChart = ({ data: tsData, predictions }) => {
   useEffect(() => {
     if (typeof window === "undefined" || !tsData || !chartRef.current) return;
 
-    const { ecg_clean, r_peaks, p_peaks, q_peaks, s_peaks, t_peaks } = tsData;
+    const { ecg_raw, ecg_clean, r_peaks, p_peaks, q_peaks, s_peaks, t_peaks } =
+      tsData;
 
     const initialLabeledData = ecg_clean.map((value, index) => ({
       index: index,
-      ecgValue: value,
+      ecgClean: value,
+      ecgRaw: ecg_raw[index],
       isRPeak: r_peaks[index] === 1,
-      pPeak: p_peaks[index] === 1 ? value : null,
-      qPeak: q_peaks[index] === 1 ? value : null,
-      sPeak: s_peaks[index] === 1 ? value : null,
-      tPeak: t_peaks[index] === 1 ? value : null,
+      pPeak:
+        p_peaks[index] === 1 ? { clean: value, raw: ecg_raw[index] } : null,
+      qPeak:
+        q_peaks[index] === 1 ? { clean: value, raw: ecg_raw[index] } : null,
+      sPeak:
+        s_peaks[index] === 1 ? { clean: value, raw: ecg_raw[index] } : null,
+      tPeak:
+        t_peaks[index] === 1 ? { clean: value, raw: ecg_raw[index] } : null,
     }));
 
     // Assign ordinal numbers to R peaks
@@ -146,23 +154,45 @@ const MyChart = ({ data: tsData, predictions }) => {
       showLine: false,
     });
 
-    const datasets = [
-      {
-        label: "ECG",
-        data: labeledData.map((d) => d.ecgValue),
+    const getPeaks = (point) => {
+      const points = labeledData.filter((d) => d[point] !== null);
+      const res = [] 
+      if(showClean) 
+        res.push(...points.map((d) => ({ x: d.index, y: d[point].clean })))
+      if (showRaw)
+        res.push(...points.map((d) => ({ x: d.index, y: d[point].raw })));
+
+      return res
+    };
+
+    const datasets = [];
+
+    if (showClean) {
+      datasets.push({
+        label: "ECG_Clean",
+        data: labeledData.map((d) => d.ecgClean),
         borderColor: "red",
         borderWidth: 1,
         fill: false,
         pointRadius: 0,
-      },
-    ];
+      });
+    }
+
+    if (showRaw) {
+      datasets.push({
+        label: "ECG_Raw",
+        data: labeledData.map((d) => d.ecgRaw),
+        borderColor: showClean ? "gray" : "red",
+        borderWidth: 1,
+        fill: false,
+        pointRadius: 0,
+      });
+    }
 
     if (showP) {
       datasets.push({
         label: "P Peaks",
-        data: labeledData
-          .filter((d) => d.pPeak !== null)
-          .map((d) => ({ x: d.index, y: d.pPeak })),
+        data: getPeaks("pPeak"),
         ...pointOptions("blue"),
       });
     }
@@ -170,9 +200,7 @@ const MyChart = ({ data: tsData, predictions }) => {
     if (showQ) {
       datasets.push({
         label: "Q Peaks",
-        data: labeledData
-          .filter((d) => d.qPeak !== null)
-          .map((d) => ({ x: d.index, y: d.qPeak })),
+        data: getPeaks("qPeak"),
         ...pointOptions("red"),
       });
     }
@@ -180,9 +208,7 @@ const MyChart = ({ data: tsData, predictions }) => {
     if (showS) {
       datasets.push({
         label: "S Peaks",
-        data: labeledData
-          .filter((d) => d.sPeak !== null)
-          .map((d) => ({ x: d.index, y: d.sPeak })),
+        data: getPeaks("sPeak"),
         ...pointOptions("green"),
       });
     }
@@ -190,9 +216,7 @@ const MyChart = ({ data: tsData, predictions }) => {
     if (showT) {
       datasets.push({
         label: "T Peaks",
-        data: labeledData
-          .filter((d) => d.tPeak !== null)
-          .map((d) => ({ x: d.index, y: d.tPeak })),
+        data: getPeaks("tPeak"),
         ...pointOptions("black"),
       });
     }
@@ -219,7 +243,7 @@ const MyChart = ({ data: tsData, predictions }) => {
     chartInstance.scales.x.min = zoomState.x;
     chartInstance.scales.x.max = zoomState.y;
     chartInstance.update("none");
-  }, [showP, showQ, showS, showT, labeledData]);
+  }, [showClean, showRaw, showP, showQ, showS, showT, labeledData]);
 
   // handle annotation(R peaks) color changes on select & prediction
   useEffect(() => {
@@ -230,7 +254,8 @@ const MyChart = ({ data: tsData, predictions }) => {
     if (predictions) {
       for (
         let i = 0;
-        i < chartInstance.options.plugins.annotation.annotations.length;
+        i < chartInstance.options.plugins.annotation.annotations.length &&
+        i < predictions.length;
         i++
       ) {
         if (chartInstance.options.plugins.annotation.annotations[i].label) {
@@ -275,8 +300,24 @@ const MyChart = ({ data: tsData, predictions }) => {
             <h3 className="font-medium text-md  mb-4">
               Select points to display:
             </h3>
-            <div className="flex flex-wrap gap-5 mb-3">
-              <div className="flex items-center space-x-2 mb-2">
+            <div className="grid grid-cols-2 gap-x-5 gap-y-3 mb-3">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="clean"
+                  checked={showClean}
+                  onCheckedChange={(val) => setShowClean(val)}
+                />
+                <Label htmlFor="clean">Clean</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="raw"
+                  checked={showRaw}
+                  onCheckedChange={(val) => setShowRaw(val)}
+                />
+                <Label htmlFor="raw">Raw</Label>
+              </div>
+              <div className="flex items-center space-x-2">
                 <Switch
                   id="p_peaks"
                   checked={showP}
@@ -284,7 +325,7 @@ const MyChart = ({ data: tsData, predictions }) => {
                 />
                 <Label htmlFor="p_peaks">P peaks</Label>
               </div>
-              <div className="flex items-center space-x-2 mb-2">
+              <div className="flex items-center space-x-2">
                 <Switch
                   id="q_peaks"
                   checked={showQ}
@@ -292,7 +333,7 @@ const MyChart = ({ data: tsData, predictions }) => {
                 />
                 <Label htmlFor="q_peaks">Q peaks</Label>
               </div>
-              <div className="flex items-center space-x-2 mb-2">
+              <div className="flex items-center space-x-2">
                 <Switch
                   id="s_peaks"
                   checked={showS}
@@ -300,7 +341,7 @@ const MyChart = ({ data: tsData, predictions }) => {
                 />
                 <Label htmlFor="s_peaks">S peaks</Label>
               </div>
-              <div className="flex items-center space-x-2 mb-2">
+              <div className="flex items-center space-x-2">
                 <Switch
                   id="t_peaks"
                   checked={showT}
