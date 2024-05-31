@@ -37,7 +37,7 @@ export default function Home() {
   const predictMutation = useMutation({
     mutationFn: () => {
       return axios.post("http://localhost:8000/predict/", {
-        ecg: ecg.ecg_clean,
+        ecg: ecg.ecg_raw,
         sampling_rate: ecg.sampling_frequency,
       });
     },

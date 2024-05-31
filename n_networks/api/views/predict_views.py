@@ -14,7 +14,29 @@ class PredictView(views.APIView):
         sampling_rate = request.data.get("sampling_rate")
         
         data125 = self.downsample_ecg(ecg, sampling_rate, 125)
-        segments = nk.ecg_segment(data125, sampling_rate=125)
+
+        data125_filtered = self.butter_filter(data125, 0.5, 40, 125, 2)
+        signals, info = nk.ecg_process(data125_filtered, 125)
+
+        r_peaks = info['ECG_R_Peaks']
+
+        rr_intervals = np.diff(r_peaks)
+        median_rr = np.median(rr_intervals)
+
+        segment_length = int(1.2 * median_rr)
+
+        segments = []
+        for peak in r_peaks:
+            start = max(0, peak - segment_length // 2)
+            end = min(len(data125_filtered), start + segment_length)
+
+            if end - start < segment_length:
+                segment = np.pad(data125_filtered[start:end], (0, segment_length - (end - start)), 'constant', constant_values=(0, 0))
+            else:
+                segment = data125_filtered[start:end]
+
+            segments.append(segment)
+
         results = []
 
         # Setup the model using TFSMLayer
@@ -28,7 +50,7 @@ class PredictView(views.APIView):
 
         for i in range(len(segments)):
             try:
-                segment = segments[str(i + 1)]['Signal']
+                segment = self.normalize_data(segments[i])
                 # Prepare the input data
                 X = self.process_input(segment, 188)
                 X = np.array(X, dtype=np.float32).reshape(1, -1)
@@ -41,7 +63,7 @@ class PredictView(views.APIView):
                 # Compute Mean Absolute Error
                 mae = MeanAbsoluteError()
                 loss = mae(X_tensor, pred).numpy()  # Ensure both inputs are tensors
-                threshold = 0.1
+                threshold = 0.052
                 result = {"isNormal": loss <= threshold}  # Check if loss is below threshold
                 results.append(result)
             except Exception as e:
