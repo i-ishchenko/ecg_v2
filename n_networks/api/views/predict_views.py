@@ -46,6 +46,39 @@ class Autoencoder:
         return result
 
 
+class CNN:
+    def __init__(self):
+        model_path = './ECG_classification_saved_model'
+        model_layer = keras.layers.TFSMLayer(model_path, call_endpoint='serving_default')
+
+        inputs = keras.Input(shape=(187, 1))
+        outputs = model_layer(inputs)
+        self.model = keras.Model(inputs, outputs)
+
+    def process_input(self, X, num):
+        n = len(X)
+        desired_length = num
+        if n < desired_length:
+            padding = np.zeros(desired_length - n)
+            X = np.concatenate((X, padding))
+        elif n > desired_length:
+            X = X[:desired_length]
+        return np.array(X).reshape(1, desired_length, 1)
+
+    def predict(self, segment):
+        X = self.process_input(segment, 187)
+        output_dict = self.model.predict(X, verbose=False)
+        pred = output_dict["dense_5"].tolist()[0]  # Use flatten() if necessary and get the whole array
+        result = {
+            "isNormal": False,
+            "S": round(pred[0] * 100),
+            "V": round(pred[1] * 100),
+            "F": round(pred[2] * 100),
+            "Q": round(pred[3] * 100)
+        }
+        return result
+
+
 class PredictView(views.APIView):
     def post(self, request, *args, **kwargs):
         ecg = np.array(request.data.get("ecg"), dtype=float)
@@ -56,11 +89,15 @@ class PredictView(views.APIView):
         results = []
 
         autoencoder = Autoencoder()
+        cnn = CNN()
 
         for i in range(len(segments)):
             try:
                 segment = self.normalize_data(segments[i])
                 result = autoencoder.predict(segment)
+                if(not result["isNormal"]):
+                    result = cnn.predict(segment)
+
                 results.append(result)
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
