@@ -1,21 +1,25 @@
+import { Prediction } from "@/types/Predtiction";
 import { Button } from "../ui/button";
+import Analysis from "./Analysis";
 import Chart from "./Chart";
 
 export default function InteractiveTab(props: {
   ecg: any;
-  predictions: any;
+  predictions: Prediction[];
   onPredict: () => void;
   isLoading: boolean;
 }) {
+  const { ecg, predictions, onPredict, isLoading } = props;
+
   return (
     <div>
-      <Chart predictions={props.predictions} data={props.ecg} />
-      <Button
-        className="mt-3"
-        isLoading={props.isLoading}
-        onClick={props.onPredict}>
-        Predict all segments
-      </Button>
+      <Chart predictions={predictions} data={ecg} />
+      {predictions.length === 0 && (
+        <Button className="mt-3" isLoading={isLoading} onClick={onPredict}>
+          Predict all segments
+        </Button>
+      )}
+      {predictions.length > 0 && <Analysis predictions={predictions} />}
     </div>
   );
 }

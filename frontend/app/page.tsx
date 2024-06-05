@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ECGDataForm from "@/components/ecg_analysis/ECGDataForm";
 import { ECGFormDataType } from "../types/ECGFormDataType";
 import { Loader2 } from "lucide-react";
+import { Prediction } from "@/types/Predtiction";
 
 const InteractiveTab = dynamic(
   () => import("@/components/ecg_analysis/InteractiveTab"),
@@ -23,7 +24,7 @@ const InteractiveTab = dynamic(
 
 export default function Home() {
   const [ecg, setECG] = useState<any>();
-  const [predictions, setPredictions] = useState<any>();
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
 
   const processMutation = useMutation({
     mutationFn: (data: ECGFormDataType) => {
@@ -42,7 +43,8 @@ export default function Home() {
       });
     },
     onSuccess: (res) => {
-      setPredictions(res.data.predictions);
+      console.log(res.data.predictions);
+      setPredictions(res.data.predictions as Prediction[]);
     },
   });
 
