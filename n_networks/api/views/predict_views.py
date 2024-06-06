@@ -29,7 +29,7 @@ class Autoencoder:
             X = X[:desired_length]
         return np.array(X).reshape(1, desired_length) 
 
-    def predict(self, segment):
+    def predict(self, segment, i):
         X = self.process_input(segment, 188)
         X = np.array(X, dtype=np.float32).reshape(1, -1)
         X_tensor = tf.convert_to_tensor(X, dtype=tf.float32)
@@ -42,7 +42,7 @@ class Autoencoder:
         mae = MeanAbsoluteError()
         loss = mae(X_tensor, pred).numpy()  # Ensure both inputs are tensors
         threshold = 0.052
-        result = {"isNormal": loss <= threshold}  # Check if loss is below threshold
+        result = {"id": "R" + str(i + 1), "isNormal": loss <= threshold}  # Check if loss is below threshold
         return result
 
 
@@ -65,11 +65,12 @@ class CNN:
             X = X[:desired_length]
         return np.array(X).reshape(1, desired_length, 1)
 
-    def predict(self, segment):
+    def predict(self, segment, i):
         X = self.process_input(segment, 187)
         output_dict = self.model.predict(X, verbose=False)
         pred = output_dict["dense_5"].tolist()[0]  # Use flatten() if necessary and get the whole array
         result = {
+            "id": "R" + str(i + 1),
             "isNormal": False,
             "S": round(pred[0] * 100),
             "V": round(pred[1] * 100),
@@ -94,9 +95,9 @@ class PredictView(views.APIView):
         for i in range(len(segments)):
             try:
                 segment = self.normalize_data(segments[i])
-                result = autoencoder.predict(segment)
+                result = autoencoder.predict(segment, i)
                 if(not result["isNormal"]):
-                    result = cnn.predict(segment)
+                    result = cnn.predict(segment, i)
 
                 results.append(result)
             except Exception as e:

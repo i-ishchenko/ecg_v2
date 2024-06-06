@@ -69,7 +69,7 @@ export default function Home() {
           </TabsContent>
           <TabsContent
             value="interactive"
-            className="w-[80vw] max-h-[80vh] mx-auto">
+            className="w-[80vw] mx-auto">
             <InteractiveTab
               ecg={ecg}
               predictions={predictions}

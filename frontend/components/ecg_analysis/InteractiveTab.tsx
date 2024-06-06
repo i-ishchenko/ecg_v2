@@ -1,6 +1,6 @@
 import { Prediction } from "@/types/Predtiction";
 import { Button } from "../ui/button";
-import Analysis from "./Analysis";
+import Analysis from "./Analysis/Analysis";
 import Chart from "./Chart";
 
 export default function InteractiveTab(props: {
