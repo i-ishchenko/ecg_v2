@@ -12,7 +12,7 @@ import {
 import { signOut } from "next-auth/react";
 import { User } from "@/types/User";
 
-export default async function Header({ user }: { user: User }) {
+export default function Header({ user }: { user: User }) {
   return (
     <header className="py-6 px-16 shadow-md flex justify-between items-center">
       <h3 className="text-xl font-bold">ECG Analysis</h3>
