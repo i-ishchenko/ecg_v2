@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ECGDataForm from "@/components/ecg_analysis/ECGDataForm";
-import { ECGFormDataType } from "../types/ECGFormDataType";
+import { ECGFormDataType } from "@/types/ECGFormDataType";
 import { Loader2 } from "lucide-react";
 import { Prediction } from "@/types/Predtiction";
 
@@ -48,7 +48,7 @@ export default function Home() {
   });
 
   return (
-    <main>
+    <main className="mt-8">
       <ECGDataForm
         ecgSend={(data) => processMutation.mutate(data)}
         isLoading={processMutation.isPending}
