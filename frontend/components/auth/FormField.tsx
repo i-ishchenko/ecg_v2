@@ -14,7 +14,7 @@ const FormField = ({
     <div className={`flex flex-col ${className}`}>
       <Label htmlFor={name} className="text-md">{label}</Label>
       <Field
-        className={`border rounded-sm py-1 px-4 mt-1 outline-none focus:border-neutral-500 ${
+        className={`border rounded-sm py-1 px-3 mt-1 outline-none focus:border-neutral-500 ${
           errors && touched ? "border-red-600" : "border-neutral-300"
         }`}
         name={name}
