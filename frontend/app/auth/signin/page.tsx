@@ -2,17 +2,18 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
+import Image from "next/image";
 import { Formik, Form } from "formik";
 import { useRouter } from "next/navigation";
 import { userValidation } from "@/validation/authValidation";
 import FormField from "@/components/auth/FormField";
 import { Credentials } from "@/types/Credentials";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
 
 import banner from "@/assets/authBanner.png";
-import Link from "next/link";
-import { useToast } from "@/components/ui/use-toast";
+
 
 export default function signUpPage() {
   const router = useRouter();

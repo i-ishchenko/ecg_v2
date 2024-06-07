@@ -8,10 +8,10 @@ import { Credentials } from "@/types/Credentials";
 import FormField from "@/components/auth/FormField";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 import banner from "@/assets/authBanner.png";
-import Link from "next/link";
-import { useToast } from "@/components/ui/use-toast";
 
 export default function signUpPage() {
   const router = useRouter();
