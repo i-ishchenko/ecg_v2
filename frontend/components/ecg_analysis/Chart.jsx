@@ -11,9 +11,11 @@ import { Label } from "../ui/label";
 // Register all necessary components
 Chart.register(...registerables, annotationPlugin, zoomPlugin);
 
-const MyChart = ({ data: tsData, predictions }) => {
+const MyChart = ({
+  data: tsData,
+  predictions,
+}) => {
   const chartRef = useRef();
-  const [selectedLine, setSelectedLine] = useState();
   const [showClean, setShowClean] = useState(false);
   const [showRaw, setShowRaw] = useState(true);
   const [showP, setShowP] = useState(true);
@@ -67,9 +69,6 @@ const MyChart = ({ data: tsData, predictions }) => {
       },
       options: {
         responsive: true,
-        animation: {
-          duration: selectedLine ? 0 : 1000, // Disable animation on line click
-        },
         scales: {
           x: {
             type: "linear",
@@ -105,15 +104,6 @@ const MyChart = ({ data: tsData, predictions }) => {
                   font: {
                     size: 10,
                   },
-                },
-                click: () => {
-                  setSelectedLine(`R${idx + 1}`);
-                },
-                enter: () => {
-                  document.body.style.cursor = "pointer";
-                },
-                leave: () => {
-                  document.body.style.cursor = "default";
                 },
               })),
           },
@@ -156,13 +146,13 @@ const MyChart = ({ data: tsData, predictions }) => {
 
     const getPeaks = (point) => {
       const points = labeledData.filter((d) => d[point] !== null);
-      const res = [] 
-      if(showClean) 
-        res.push(...points.map((d) => ({ x: d.index, y: d[point].clean })))
+      const res = [];
+      if (showClean)
+        res.push(...points.map((d) => ({ x: d.index, y: d[point].clean })));
       if (showRaw)
         res.push(...points.map((d) => ({ x: d.index, y: d[point].raw })));
 
-      return res
+      return res;
     };
 
     const datasets = [];
@@ -270,22 +260,8 @@ const MyChart = ({ data: tsData, predictions }) => {
       return;
     }
 
-    // Update the annotation colors based on selected line
-    chartInstance.options.plugins.annotation.annotations.forEach(
-      (annotation) => {
-        if (annotation.label) {
-          annotation.borderColor =
-            selectedLine === annotation.label.content ? "blue" : "lightgray";
-          annotation.label.backgroundColor =
-            selectedLine === annotation.label.content
-              ? "blue"
-              : "rgba(0, 0, 0, 0.5)";
-        }
-      }
-    );
-
     chartInstance.update("none"); // Update without animation
-  }, [selectedLine, predictions]);
+  }, [predictions]);
 
   return (
     <div className="relative">

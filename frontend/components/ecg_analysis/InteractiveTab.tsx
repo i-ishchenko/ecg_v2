@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Prediction } from "@/types/Predtiction";
 import { Button } from "../ui/button";
 import Analysis from "./Analysis/Analysis";
@@ -13,13 +14,18 @@ export default function InteractiveTab(props: {
 
   return (
     <div>
-      <Chart predictions={predictions} data={ecg} />
+      <Chart
+        predictions={predictions}
+        data={ecg}
+      />
       {predictions.length === 0 && (
         <Button className="mt-3" isLoading={isLoading} onClick={onPredict}>
           Predict all segments
         </Button>
       )}
-      {predictions.length > 0 && <Analysis predictions={predictions} />}
+      {predictions.length > 0 && (
+        <Analysis predictions={predictions} />
+      )}
     </div>
   );
 }

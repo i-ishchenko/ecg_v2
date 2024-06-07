@@ -43,7 +43,6 @@ export default function Home() {
       });
     },
     onSuccess: (res) => {
-      console.log(res.data.predictions);
       setPredictions(res.data.predictions as Prediction[]);
     },
   });
