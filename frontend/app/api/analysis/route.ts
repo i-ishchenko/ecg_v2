@@ -3,14 +3,12 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../auth/[...nextauth]/route";
 import Analysis from "@/models/analysisModel";
+import getAnalyses from "@/lib/api/getAnalyses";
 
 export async function GET() {
   try {
     await connectDB();
-    const session = await getServerSession(authOptions);
-    const analyses = await Analysis.find({
-      user: session?.user?.id,
-    }).select("patient note ecg.sampling_frequency date updatedAt");
+    const analyses = await getAnalyses()
 
     return NextResponse.json({ analyses }, { status: 200 });
   } catch (error) {

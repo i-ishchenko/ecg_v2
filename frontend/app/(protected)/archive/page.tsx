@@ -1,18 +1,9 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { DataTable } from "@/components/ui/data-table";
-import { connectDB } from "@/lib/connectDB";
-import Analysis from "@/models/analysisModel";
-import { getServerSession } from "next-auth";
 import { columns } from "./columns";
+import getAnalyses from "@/lib/api/getAnalyses";
 
 export default async function ArchivePage() {
-  await connectDB();
-  const session = await getServerSession(authOptions);
-  const analyses = JSON.stringify(
-    await Analysis.find({
-      user: session?.user?.id,
-    }).select("patient note ecg.sampling_frequency date updatedAt")
-  );
+  const analyses = JSON.stringify(await getAnalyses());
 
   return (
     <main className="mt-8 w-[80vw] mx-auto">
