@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input";
 
 export default function Analysis(props: {
   predictions: Prediction[];
-  saveAnalysis: (data: { patient: string; note: string; date: Date }) => void;
+  saveAnalysis?: (data: { patient: string; note: string; date: Date }) => void;
   isSaving: boolean;
 }) {
   const { predictions, saveAnalysis, isSaving } = props;
@@ -67,11 +67,12 @@ export default function Analysis(props: {
   }, []);
 
   const onSubmit = () => {
-    saveAnalysis({
-      patient,
-      note,
-      date,
-    });
+    if (saveAnalysis)
+      saveAnalysis({
+        patient,
+        note,
+        date,
+      });
   };
 
   return (
@@ -82,70 +83,72 @@ export default function Analysis(props: {
         {Math.round(anomalies.length / (predictions.length / 100))}%)
       </h3>
       <DataTable columns={columns} data={tableData} />
-      <Drawer>
-        <DrawerTrigger asChild>
-          <Button className="mt-3" isLoading={isSaving}>
-            Save
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent className="max-w-[80vw] xl:max-w-[65vw] mx-auto px-16">
-          <DrawerTitle className="mt-3">
-            Specify some additional info:
-          </DrawerTitle>
-          <Label htmlFor="patient" className="mt-5">
-            Patient's name
-          </Label>
-          <Input
-            id="patient"
-            className="mt-1"
-            required
-            value={patient}
-            onChange={(e) => setPatient(e.target.value)}
-          />
-          <Label htmlFor="notes" className="mt-2">
-            Notes
-          </Label>
-          <Textarea
-            id="notes"
-            className="mt-1 resize-none"
-            placeholder="Your notes"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-          <Label htmlFor="date" className="mt-2">
-            Date
-          </Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-[280px] justify-start text-left font-normal mt-1",
-                  !date && "text-muted-foreground"
-                )}>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(day) => setDate(day as Date)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <DrawerClose asChild>
-            <Button
-              className="mt-5 mb-8"
-              onClick={onSubmit}
-              disabled={!patient}>
-              Confirm
+      {saveAnalysis && (
+        <Drawer>
+          <DrawerTrigger asChild>
+            <Button className="mt-3" isLoading={isSaving}>
+              Save
             </Button>
-          </DrawerClose>
-        </DrawerContent>
-      </Drawer>
+          </DrawerTrigger>
+          <DrawerContent className="max-w-[80vw] xl:max-w-[65vw] mx-auto px-16">
+            <DrawerTitle className="mt-3">
+              Specify some additional info:
+            </DrawerTitle>
+            <Label htmlFor="patient" className="mt-5">
+              Patient's name
+            </Label>
+            <Input
+              id="patient"
+              className="mt-1"
+              required
+              value={patient}
+              onChange={(e) => setPatient(e.target.value)}
+            />
+            <Label htmlFor="notes" className="mt-2">
+              Notes
+            </Label>
+            <Textarea
+              id="notes"
+              className="mt-1 resize-none"
+              placeholder="Your notes"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            <Label htmlFor="date" className="mt-2">
+              Date
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[280px] justify-start text-left font-normal mt-1",
+                    !date && "text-muted-foreground"
+                  )}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(day) => setDate(day as Date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <DrawerClose asChild>
+              <Button
+                className="mt-5 mb-8"
+                onClick={onSubmit}
+                disabled={!patient}>
+                Confirm
+              </Button>
+            </DrawerClose>
+          </DrawerContent>
+        </Drawer>
+      )}
     </div>
   );
 }

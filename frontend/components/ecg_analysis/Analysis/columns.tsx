@@ -16,6 +16,7 @@ export const columns: ColumnDef<Prediction>[] = [
     header: ({ column }) => (
       <Button
         variant="ghost"
+        className="pl-0 hover:bg-transparent"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
         Id
         <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -28,6 +29,7 @@ export const columns: ColumnDef<Prediction>[] = [
     header: ({ column }) => (
       <Button
         variant="ghost"
+        className="pl-0 hover:bg-transparent"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
         Annomaly
         <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -47,6 +49,7 @@ export const columns: ColumnDef<Prediction>[] = [
         <HoverCardTrigger className="w-full block">
           <Button
             variant="ghost"
+            className="pl-0 hover:bg-transparent"
             onClick={() =>
               column.toggleSorting(column.getIsSorted() === "asc")
             }>
@@ -80,6 +83,7 @@ export const columns: ColumnDef<Prediction>[] = [
         <HoverCardTrigger className="w-full block">
           <Button
             variant="ghost"
+            className="pl-0 hover:bg-transparent"
             onClick={() =>
               column.toggleSorting(column.getIsSorted() === "asc")
             }>
@@ -111,6 +115,7 @@ export const columns: ColumnDef<Prediction>[] = [
         <HoverCardTrigger className="w-full block">
           <Button
             variant="ghost"
+            className="pl-0 hover:bg-transparent"
             onClick={() =>
               column.toggleSorting(column.getIsSorted() === "asc")
             }>
@@ -141,6 +146,7 @@ export const columns: ColumnDef<Prediction>[] = [
         <HoverCardTrigger className="w-full block">
           <Button
             variant="ghost"
+            className="pl-0 hover:bg-transparent"
             onClick={() =>
               column.toggleSorting(column.getIsSorted() === "asc")
             }>

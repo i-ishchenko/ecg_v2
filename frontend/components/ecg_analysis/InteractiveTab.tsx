@@ -7,9 +7,9 @@ import Chart from "./Chart";
 export default function InteractiveTab(props: {
   ecg: any;
   predictions: Prediction[];
-  onPredict: () => void;
+  onPredict?: () => void;
   isLoading: boolean;
-  saveAnalysis: (data: { patient: string; note: string; date: Date }) => void;
+  saveAnalysis?: (data: { patient: string; note: string; date: Date }) => void;
   isSaving: boolean;
 }) {
   const { ecg, predictions, onPredict, isLoading, saveAnalysis, isSaving } =

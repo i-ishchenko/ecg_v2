@@ -1,27 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ECGDataForm from "@/components/ecg_analysis/ECGDataForm";
 import { ECGFormDataType } from "@/types/ECGFormDataType";
-import { Loader2 } from "lucide-react";
 import { Prediction } from "@/types/Predtiction";
 import { useToast } from "@/hooks/use-toast";
-
-const InteractiveTab = dynamic(
-  () => import("@/components/ecg_analysis/InteractiveTab"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    ),
-  }
-);
+import ECGTabs from "@/components/ecg_analysis/ECGTabs";
 
 export default function Home() {
   const [ecg, setECG] = useState<any>();
@@ -60,7 +46,7 @@ export default function Home() {
     onSuccess: () => {
       toast({
         title: "Analysis saved",
-        description: "You can view all saved analyses inside your archive."
+        description: "You can view all saved analyses inside your archive.",
       });
     },
   });
@@ -72,33 +58,16 @@ export default function Home() {
         isLoading={processMutation.isPending}
       />
       {ecg && (
-        <Tabs defaultValue="general" className="flex flex-col mt-10 mb-20">
-          <TabsList className="mx-auto justify-self-center mb-3">
-            <TabsTrigger value="general">General Info</TabsTrigger>
-            <TabsTrigger value="interactive">Interactive Chart</TabsTrigger>
-          </TabsList>
-          <TabsContent value="general">
-            <img
-              className="w-[80vw] max-h-[80vh] m-auto object-contain"
-              src={`data:image/jpeg;base64,${ecg.image}`}
-              alt="additional chart"
-            />
-          </TabsContent>
-          <TabsContent value="interactive" className="w-[80vw] mx-auto">
-            <InteractiveTab
-              ecg={ecg}
-              predictions={predictions}
-              onPredict={() => predictMutation.mutate()}
-              isLoading={predictMutation.isPending}
-              saveAnalysis={(data: {
-                patient: string;
-                note: string;
-                date: Date;
-              }) => saveAnalysisMutation.mutate(data)}
-              isSaving={saveAnalysisMutation.isPending}
-            />
-          </TabsContent>
-        </Tabs>
+        <ECGTabs
+          ecg={ecg}
+          predictions={predictions}
+          onPredict={() => predictMutation.mutate()}
+          isLoading={predictMutation.isPending}
+          saveAnalysis={(data: { patient: string; note: string; date: Date }) =>
+            saveAnalysisMutation.mutate(data)
+          }
+          isSaving={saveAnalysisMutation.isPending}
+        />
       )}
     </main>
   );
