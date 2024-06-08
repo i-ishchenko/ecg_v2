@@ -11,10 +11,7 @@ import { Label } from "../ui/label";
 // Register all necessary components
 Chart.register(...registerables, annotationPlugin, zoomPlugin);
 
-const MyChart = ({
-  data: tsData,
-  predictions,
-}) => {
+const MyChart = ({ data: tsData, predictions }) => {
   const chartRef = useRef();
   const [showClean, setShowClean] = useState(false);
   const [showRaw, setShowRaw] = useState(true);
@@ -267,7 +264,7 @@ const MyChart = ({
     <div className="relative">
       <div className="absolute right-0 top-8">
         <Popover>
-          <PopoverTrigger>
+          <PopoverTrigger asChild>
             <Button>
               <Settings color="white" />
             </Button>

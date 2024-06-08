@@ -25,6 +25,7 @@ class ProcessView(views.APIView):
 
             return Response(
                {
+                  "cleaning_method": cleaning_method,
                   "sampling_frequency": sampling_rate,
                   "ecg_raw": signals["ECG_Raw"],
                   "ecg_clean": signals["ECG_Clean"], 

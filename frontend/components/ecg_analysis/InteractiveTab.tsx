@@ -9,22 +9,22 @@ export default function InteractiveTab(props: {
   predictions: Prediction[];
   onPredict: () => void;
   isLoading: boolean;
+  saveAnalysis: (data: { patient: string; note: string; date: Date }) => void;
+  isSaving: boolean;
 }) {
-  const { ecg, predictions, onPredict, isLoading } = props;
+  const { ecg, predictions, onPredict, isLoading, saveAnalysis, isSaving } =
+    props;
 
   return (
     <div>
-      <Chart
-        predictions={predictions}
-        data={ecg}
-      />
+      <Chart predictions={predictions} data={ecg} />
       {predictions.length === 0 && (
         <Button className="mt-3" isLoading={isLoading} onClick={onPredict}>
           Predict all segments
         </Button>
       )}
       {predictions.length > 0 && (
-        <Analysis predictions={predictions} />
+        <Analysis predictions={predictions} saveAnalysis={saveAnalysis} isSaving={isSaving} />
       )}
     </div>
   );

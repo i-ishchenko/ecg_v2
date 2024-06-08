@@ -9,6 +9,7 @@ import ECGDataForm from "@/components/ecg_analysis/ECGDataForm";
 import { ECGFormDataType } from "@/types/ECGFormDataType";
 import { Loader2 } from "lucide-react";
 import { Prediction } from "@/types/Predtiction";
+import { useToast } from "@/hooks/use-toast";
 
 const InteractiveTab = dynamic(
   () => import("@/components/ecg_analysis/InteractiveTab"),
@@ -25,6 +26,7 @@ const InteractiveTab = dynamic(
 export default function Home() {
   const [ecg, setECG] = useState<any>();
   const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const { toast } = useToast();
 
   const processMutation = useMutation({
     mutationFn: (data: ECGFormDataType) => {
@@ -47,6 +49,22 @@ export default function Home() {
     },
   });
 
+  const saveAnalysisMutation = useMutation({
+    mutationFn: (data: { patient: string; note: string; date: Date }) => {
+      return axios.post("/api/analysis", {
+        ...data,
+        ecg,
+        predictions,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Analysis saved",
+        description: "You can view all saved analyses inside your archive."
+      });
+    },
+  });
+
   return (
     <main className="mt-8">
       <ECGDataForm
@@ -66,14 +84,18 @@ export default function Home() {
               alt="additional chart"
             />
           </TabsContent>
-          <TabsContent
-            value="interactive"
-            className="w-[80vw] mx-auto">
+          <TabsContent value="interactive" className="w-[80vw] mx-auto">
             <InteractiveTab
               ecg={ecg}
               predictions={predictions}
               onPredict={() => predictMutation.mutate()}
               isLoading={predictMutation.isPending}
+              saveAnalysis={(data: {
+                patient: string;
+                note: string;
+                date: Date;
+              }) => saveAnalysisMutation.mutate(data)}
+              isSaving={saveAnalysisMutation.isPending}
             />
           </TabsContent>
         </Tabs>
