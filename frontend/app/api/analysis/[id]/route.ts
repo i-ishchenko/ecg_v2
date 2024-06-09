@@ -14,7 +14,7 @@ export async function GET(
     const analysis = await Analysis.findOne({
       _id: params.id,
       user: session?.user?.id,
-    }).select("patient note ecg.sampling_frequency date updatedAt");
+    });
 
     if (!analysis)
       return NextResponse.json(
@@ -27,7 +27,30 @@ export async function GET(
     console.log(error);
     return NextResponse.json(
       {
-        message: "Error occured while fetching analyses",
+        message: "Error occured while fetching analysis",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await connectDB();
+    const session = await getServerSession(authOptions);
+    await Analysis.deleteOne({
+      _id: params.id,
+      user: session?.user?.id,
+    });
+    return NextResponse.json({}, { status: 200 });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json(
+      {
+        message: "Error occured while deleting analysss",
       },
       { status: 500 }
     );

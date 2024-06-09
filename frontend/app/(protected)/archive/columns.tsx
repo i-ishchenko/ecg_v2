@@ -7,7 +7,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, Loader2, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { AnalysisBrief } from "@/types/Analysis";
 import {
@@ -18,6 +18,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 export const columns: ColumnDef<AnalysisBrief>[] = [
   {
@@ -103,8 +105,19 @@ export const columns: ColumnDef<AnalysisBrief>[] = [
     id: "actions",
     cell: ({ row }) => {
       const id = row.original.id;
+      const queryClient = useQueryClient();
+      const deleteMutation = useMutation({
+        mutationFn: () => {
+          return axios.delete(`/api/analysis/${id}`);
+        },
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["analyses"] });
+        },
+      });
 
-      return (
+      return deleteMutation.isPending ? (
+        <Loader2 />
+      ) : (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -117,7 +130,11 @@ export const columns: ColumnDef<AnalysisBrief>[] = [
             <DropdownMenuItem>
               <Link href={`/archive/${id}`}>View more</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-700 hover:!text-red-500">Delete</DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-red-700 hover:!text-red-500"
+              onClick={() => deleteMutation.mutate()}>
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
