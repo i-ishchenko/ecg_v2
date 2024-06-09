@@ -22,17 +22,19 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  initSortingState?: {
+    id: string;
+    desc: boolean;
+  };
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  initSortingState = { id: "id", desc: false },
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: "id",
-      desc: false,
-    },
+    initSortingState,
   ]);
 
   const table = useReactTable({

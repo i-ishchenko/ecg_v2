@@ -15,5 +15,11 @@ export default function TableWrapper({ data }: { data: any[] }) {
     initialData: data,
   });
 
-  return <DataTable data={analyses} columns={columns} />;
+  return (
+    <DataTable
+      data={analyses}
+      columns={columns}
+      initSortingState={{ id: "date", desc: true }}
+    />
+  );
 }

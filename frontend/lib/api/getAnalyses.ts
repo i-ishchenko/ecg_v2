@@ -8,9 +8,11 @@ export default async function getAnalyses() {
   const session = await getServerSession(authOptions);
   let analyses = await Analysis.find({
     user: session?.user?.id,
-  }).select("patient note ecg.sampling_frequency date updatedAt");
+  })
+    .select("patient note ecg.sampling_frequency date updatedAt")
+    .sort({ date: -1 });
 
-  analyses = JSON.parse(JSON.stringify(analyses))
+  analyses = JSON.parse(JSON.stringify(analyses));
   analyses = analyses.map((a: any) => ({ ...a, id: a._id }));
 
   return analyses;

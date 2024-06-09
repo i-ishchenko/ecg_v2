@@ -1,9 +1,7 @@
-import { DataTable } from "@/components/ui/data-table";
-import { columns } from "./columns";
 import getAnalyses from "@/lib/api/getAnalyses";
 import TableWrapper from "./TableWrapper";
 
-export const fetchCache = "force-no-store";
+export const revalidate = 0;
 
 export default async function ArchivePage() {
   const analyses = await getAnalyses();
