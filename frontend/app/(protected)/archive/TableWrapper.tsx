@@ -20,6 +20,7 @@ export default function TableWrapper({ data }: { data: any[] }) {
       data={analyses}
       columns={columns}
       filterField="patient"
+      pageSize={15}
       initSortingState={{ id: "date", desc: true }}
     />
   );
