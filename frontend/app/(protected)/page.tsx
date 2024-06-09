@@ -67,6 +67,7 @@ export default function Home() {
             saveAnalysisMutation.mutate(data)
           }
           isSaving={saveAnalysisMutation.isPending}
+          setPredictions={setPredictions}
         />
       )}
     </main>

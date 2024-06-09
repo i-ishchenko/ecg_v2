@@ -246,11 +246,12 @@ const MyChart = ({ data: tsData, predictions }) => {
         i++
       ) {
         if (chartInstance.options.plugins.annotation.annotations[i].label) {
+          const prediction = predictions.find((p) => p.id === `R${i + 1}`);
           chartInstance.options.plugins.annotation.annotations[i].borderColor =
-            predictions[i].isNormal ? "green" : "red";
+            prediction.isNormal ? "green" : "red";
           chartInstance.options.plugins.annotation.annotations[
             i
-          ].label.backgroundColor = predictions[i].isNormal ? "green" : "red";
+          ].label.backgroundColor = prediction.isNormal ? "green" : "red";
         }
       }
       chartInstance.update("none");

@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { Prediction } from "@/types/Predtiction";
+"use client";
+
+import { AnomalyClasses, Prediction } from "@/types/Predtiction";
 import { Button } from "../ui/button";
 import Analysis from "./Analysis/Analysis";
 import Chart from "./Chart";
@@ -10,10 +11,22 @@ export default function InteractiveTab(props: {
   onPredict?: () => void;
   isLoading: boolean;
   saveAnalysis?: (data: { patient: string; note: string; date: Date }) => void;
+  updatePrediction?: (prediction: {
+    id: string;
+    isNormal: boolean;
+    classification: AnomalyClasses | undefined;
+  }) => void;
   isSaving: boolean;
 }) {
-  const { ecg, predictions, onPredict, isLoading, saveAnalysis, isSaving } =
-    props;
+  const {
+    ecg,
+    predictions,
+    onPredict,
+    isLoading,
+    saveAnalysis,
+    isSaving,
+    updatePrediction,
+  } = props;
 
   return (
     <div>
@@ -24,7 +37,12 @@ export default function InteractiveTab(props: {
         </Button>
       )}
       {predictions.length > 0 && (
-        <Analysis predictions={predictions} saveAnalysis={saveAnalysis} isSaving={isSaving} />
+        <Analysis
+          predictions={predictions}
+          saveAnalysis={saveAnalysis}
+          updatePrediction={updatePrediction}
+          isSaving={isSaving}
+        />
       )}
     </div>
   );

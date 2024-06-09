@@ -1,9 +1,14 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Prediction } from "@/types/Predtiction";
+import {
+  AnomalyClasses,
+  AnomalyClassesArray,
+  Prediction,
+} from "@/types/Predtiction";
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { Dispatch, SetStateAction } from "react";
 
 const InteractiveTab = dynamic(
   () => import("@/components/ecg_analysis/InteractiveTab"),
@@ -23,10 +28,42 @@ export default function ECGTabs(props: {
   onPredict?: () => void;
   isLoading: boolean;
   saveAnalysis?: (data: { patient: string; note: string; date: Date }) => void;
+  setPredictions?: Dispatch<SetStateAction<Prediction[]>>;
   isSaving: boolean;
 }) {
-  const { ecg, predictions, onPredict, isLoading, saveAnalysis, isSaving } =
-    props;
+  const {
+    ecg,
+    predictions,
+    onPredict,
+    isLoading,
+    saveAnalysis,
+    setPredictions,
+    isSaving,
+  } = props;
+
+  const updatePrediction = setPredictions
+    ? (prediction: {
+        id: string;
+        isNormal: boolean;
+        classification: AnomalyClasses | undefined;
+      }) => {
+        const newPrediction: Prediction = {
+          id: prediction.id,
+          isNormal: prediction.isNormal,
+        };
+
+        if (!prediction.isNormal && prediction.classification) {
+          for (let anomalyClass of AnomalyClassesArray) {
+            newPrediction[anomalyClass] =
+              anomalyClass == prediction.classification ? 100 : 0;
+          }
+        }
+        setPredictions((prev) => [
+          ...prev.filter((p) => p.id !== newPrediction.id),
+          newPrediction,
+        ]);
+      }
+    : undefined;
 
   return (
     <Tabs defaultValue="general" className="flex flex-col mt-8 mb-20">
@@ -48,6 +85,7 @@ export default function ECGTabs(props: {
           onPredict={onPredict}
           isLoading={isLoading}
           saveAnalysis={saveAnalysis}
+          updatePrediction={updatePrediction}
           isSaving={isSaving}
         />
       </TabsContent>
