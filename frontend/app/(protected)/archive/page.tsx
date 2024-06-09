@@ -8,7 +8,7 @@ export default async function ArchivePage() {
 
   return (
     <main className="mt-8 w-[80vw] mx-auto">
-      <h1 className="text-xl font-bold">Archive</h1>
+      <h1 className="text-2xl font-bold">Archive</h1>
       <TableWrapper data={analyses} />
     </main>
   );

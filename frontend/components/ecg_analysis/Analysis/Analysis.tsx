@@ -82,7 +82,7 @@ export default function Analysis(props: {
         Overall anomalies found: {anomalies.length}/{predictions.length} (
         {Math.round(anomalies.length / (predictions.length / 100))}%)
       </h3>
-      <DataTable columns={columns} data={tableData} />
+      <DataTable columns={columns} data={tableData} filterField="id" />
       {saveAnalysis && (
         <Drawer>
           <DrawerTrigger asChild>

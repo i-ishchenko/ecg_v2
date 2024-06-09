@@ -19,6 +19,7 @@ export default function TableWrapper({ data }: { data: any[] }) {
     <DataTable
       data={analyses}
       columns={columns}
+      filterField="patient"
       initSortingState={{ id: "date", desc: true }}
     />
   );
