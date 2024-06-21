@@ -1,12 +1,14 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import ECGTabs from "@/components/ecg_analysis/ECGTabs";
+
 import { connectDB } from "@/lib/connectDB";
 import Analysis from "@/models/analysisModel";
-import { Prediction } from "@/types/Predtiction";
 import mongoose from "mongoose";
 import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
+import ECGTabs from "@/components/ecg_analysis/ECGTabs";
 import { format } from "date-fns";
+import { Prediction } from "@/types/Predtiction";
+import SavePDF from "@/components/ecg_analysis/Analysis/SavePDF";
 
 export default async function AnalysisPage({
   params,
@@ -40,7 +42,8 @@ export default async function AnalysisPage({
         </div>
         <p>Notes: {analysis.note}</p>
         <p>Sampling rate: {analysis.ecg.sampling_frequency}</p>
-        <p>Cleaning method: {analysis.ecg.cleaning_method}</p>
+        <p className="mb-3">Cleaning method: {analysis.ecg.cleaning_method}</p>
+        <SavePDF analysis={analysis} />
       </div>
       <ECGTabs
         ecg={analysis.ecg}
