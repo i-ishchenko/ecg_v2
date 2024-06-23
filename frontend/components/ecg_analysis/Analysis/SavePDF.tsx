@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 export default function SavePDF({ analysis }: { analysis: any }) {
   const formatedDate = format(new Date(analysis.date), "dd.MM.yyyy");
 
-  const generateImage = async () => {
+  const generatePDF = async () => {
     const doc = new jsPDF();
     let y = 22;
     let x = 15;
@@ -49,6 +49,6 @@ export default function SavePDF({ analysis }: { analysis: any }) {
   };
 
   return (
-    <Button onClick={generateImage}>Download</Button>
+    <Button onClick={generatePDF}>Download</Button>
   );
 }
