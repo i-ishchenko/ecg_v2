@@ -2,11 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
 import annotationPlugin from "chartjs-plugin-annotation";
 import zoomPlugin from "chartjs-plugin-zoom";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Settings } from "lucide-react";
-import { Button } from "../ui/button";
-import { Switch } from "../ui/switch";
-import { Label } from "../ui/label";
+import ChartControls from "./СhartControls";
 
 // Register all necessary components
 Chart.register(...registerables, annotationPlugin, zoomPlugin);
@@ -263,70 +259,20 @@ const MyChart = ({ data: tsData, predictions }) => {
 
   return (
     <div className="relative">
-      <div className="absolute right-0 top-8">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button>
-              <Settings color="white" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <h3 className="font-medium text-md  mb-4">
-              Select points to display:
-            </h3>
-            <div className="grid grid-cols-2 gap-x-5 gap-y-3 mb-3">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="clean"
-                  checked={showClean}
-                  onCheckedChange={(val) => setShowClean(val)}
-                />
-                <Label htmlFor="clean">Clean</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="raw"
-                  checked={showRaw}
-                  onCheckedChange={(val) => setShowRaw(val)}
-                />
-                <Label htmlFor="raw">Raw</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="p_peaks"
-                  checked={showP}
-                  onCheckedChange={(val) => setShowP(val)}
-                />
-                <Label htmlFor="p_peaks">P peaks</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="q_peaks"
-                  checked={showQ}
-                  onCheckedChange={(val) => setShowQ(val)}
-                />
-                <Label htmlFor="q_peaks">Q peaks</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="s_peaks"
-                  checked={showS}
-                  onCheckedChange={(val) => setShowS(val)}
-                />
-                <Label htmlFor="s_peaks">S peaks</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="t_peaks"
-                  checked={showT}
-                  onCheckedChange={(val) => setShowT(val)}
-                />
-                <Label htmlFor="t_peaks">T peaks</Label>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
+      <ChartControls
+        showClean={showClean}
+        showRaw={showRaw}
+        showP={showP}
+        showQ={showQ}
+        showS={showS}
+        showT={showT}
+        setShowClean={setShowClean}
+        setShowRaw={setShowRaw}
+        setShowP={setShowP}
+        setShowQ={setShowQ}
+        setShowS={setShowS}
+        setShowT={setShowT}
+      />
       <canvas ref={chartRef} />
     </div>
   );
