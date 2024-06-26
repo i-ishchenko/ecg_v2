@@ -84,8 +84,9 @@ class PredictView(views.APIView):
     def post(self, request, *args, **kwargs):
         ecg = np.array(request.data.get("ecg"), dtype=float)
         sampling_rate = request.data.get("sampling_rate")
+        cleaning_method = request.data.get("cleaning_method")
     
-        segments = self.segment(ecg, sampling_rate)
+        segments = self.segment(ecg, sampling_rate, cleaning_method)
 
         results = []
 
@@ -105,11 +106,11 @@ class PredictView(views.APIView):
 
         return Response({"predictions": results}, status=status.HTTP_200_OK)
 
-    def segment(self, ecg, sampling_rate):
+    def segment(self, ecg, sampling_rate, cleaning_method):
         data125 = self.downsample_ecg(ecg, sampling_rate, 125)
 
         data125_filtered = self.butter_filter(data125, 0.5, 40, 125, 2)
-        signals, info = nk.ecg_process(data125_filtered, 125)
+        signals, info = nk.ecg_process(data125_filtered, 125, cleaning_method)
 
         r_peaks = info['ECG_R_Peaks']
 
