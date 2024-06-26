@@ -30,7 +30,7 @@ export default function Home() {
       return axios.post("http://localhost:8000/predict/", {
         ecg: ecg.ecg_raw,
         sampling_rate: ecg.sampling_frequency,
-        r_peaks: ecg.r_peaks,
+        cleaning_method: ecg.cleaning_method,
       });
     },
     onSuccess: (res) => {
