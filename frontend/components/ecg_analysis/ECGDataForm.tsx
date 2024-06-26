@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from "../ui/select";
 import { ECGFormDataType } from "@/types/ECGFormDataType";
+import { InfoIcon } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export default function ECGDataForm(props: {
   ecgSend: (data: ECGFormDataType) => void;
@@ -57,9 +59,21 @@ export default function ECGDataForm(props: {
         />
       </div>
       <div className="mb-3 w-full">
-        <Label htmlFor="ecg" className="block mb-1 text-md">
-          ECG data file
-        </Label>
+        <div className="flex items-center gap-2 mb-2">
+          <Label htmlFor="ecg" className="block text-md">
+            ECG data file
+          </Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <InfoIcon className="cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>ECG signal from lead MLII</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Input
           id="ecg"
           ref={fileRef}
