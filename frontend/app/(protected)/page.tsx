@@ -16,6 +16,8 @@ export default function Home() {
 
   const processMutation = useMutation({
     mutationFn: (data: ECGFormDataType) => {
+      setPredictions([]);
+      setECG(null);
       return axios.post("http://localhost:8000/process/", data);
     },
     onSuccess: (res) => {
