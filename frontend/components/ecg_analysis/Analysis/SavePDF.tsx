@@ -41,14 +41,14 @@ export default function SavePDF({ analysis }: { analysis: any }) {
           }
           return rowData;
         }),
+      startY: y + 5,
       margin: {
-        top: (y += 5),
+        top: 10,
       },
+      rowPageBreak: "auto",
     });
     doc.save(`${analysis.patient}_${formatedDate}.pdf`);
   };
 
-  return (
-    <Button onClick={generatePDF}>Download</Button>
-  );
+  return <Button onClick={generatePDF}>Download</Button>;
 }
