@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 import ECGTabs from "@/components/ecg_analysis/ECGTabs";
 import { format } from "date-fns";
-import { Prediction } from "@/types/Predtiction";
+import { Prediction } from "@/types/Prediction";
 import SavePDF from "@/components/ecg_analysis/Analysis/SavePDF";
 
 export default async function AnalysisPage({

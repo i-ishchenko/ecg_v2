@@ -1,6 +1,6 @@
 "use client";
 
-import { AnomalyClasses, Prediction } from "@/types/Predtiction";
+import { AnomalyClasses, Prediction } from "@/types/Prediction";
 import { Button } from "../ui/button";
 import Analysis from "./Analysis/Analysis";
 import Chart from "./Chart";

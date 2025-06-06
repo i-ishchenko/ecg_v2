@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import jsPDF from "jspdf";
-import { AnomalyClassesArray, Prediction } from "@/types/Predtiction";
+import { AnomalyClassesArray, Prediction } from "@/types/Prediction";
 import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 

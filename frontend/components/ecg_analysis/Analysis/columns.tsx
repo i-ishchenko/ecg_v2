@@ -25,10 +25,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AnomalyClasses, Prediction } from "@/types/Predtiction";
+import { AnomalyClasses, Prediction, Explanation } from "@/types/Prediction";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Pen } from "lucide-react";
+import { ArrowUpDown, Pen, Eye } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import PredictionExplanation from "./PredictionExplanation";
+
+const fetchExplanation = async (segmentData: number[]): Promise<Explanation> => {
+  const response = await axios.post("http://localhost:8000/explain/", {
+    segment_data: segmentData,
+  });
+  return response.data.explanation;
+};
 
 export const getColumns = (
   updatePrediction: ((newPrediction: {
@@ -205,13 +215,58 @@ export const getColumns = (
           !row.original.isNormal
         );
         const [anomalyClass, setAnomalyClass] = useState<AnomalyClasses>();
+        const [isDialogOpen, setIsDialogOpen] = useState(false);
+        
+        const canExplain = !row.original.isNormal && row.original.segment_data && row.original.id !== "Overall";
+        
+        const {
+          data: explanation,
+          isLoading,
+          error,
+        } = useQuery({
+          queryKey: ["explanation", row.original.id],
+          queryFn: () => fetchExplanation(row.original.segment_data!),
+          enabled: isDialogOpen && canExplain,
+        });
 
-        return updatePrediction && (
-          <span>
-            {row.original.id !== "Overall" && (
-              <Dialog>
+        return (
+          <div className="flex items-center gap-2">
+            {/* View ECG with Explanation Button */}
+            {canExplain && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Pen className="cursor-pointer h-5 w-5 stroke-zinc-500 hover:stroke-black" />
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Eye className="h-5 w-5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto no-scrollbar-arrows">
+                  <DialogHeader className="mb-3">
+                    <DialogTitle>ECG Analysis for {row.original.id}</DialogTitle>
+                    <DialogDescription>
+                      ECG segment with AI explanation highlighting influential regions
+                    </DialogDescription>
+                  </DialogHeader>
+                  <PredictionExplanation 
+                    prediction={row.original} 
+                    explanation={explanation}
+                    isLoading={isLoading}
+                  />
+                  {error && (
+                    <div className="text-red-600 text-sm mt-2">
+                      Error loading explanation: {(error as Error).message}
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            )}
+            
+            {/* Edit Prediction Button */}
+            {updatePrediction && row.original.id !== "Overall" && (
+              <Dialog>     
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Pen className="h-5 w-5" />
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px]">
                   <DialogHeader>
@@ -269,7 +324,7 @@ export const getColumns = (
                 </DialogContent>
               </Dialog>
             )}
-          </span>
+          </div>
         );
       },
     },

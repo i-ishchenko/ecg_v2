@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/components/ui/data-table";
-import { AnomalyClasses, Prediction } from "@/types/Predtiction";
+import { AnomalyClasses, Prediction } from "@/types/Prediction";
 import { getColumns } from "./columns";
 import { useEffect, useMemo, useState } from "react";
 import {

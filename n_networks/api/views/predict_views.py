@@ -7,6 +7,10 @@ from rest_framework import views, status
 from rest_framework.response import Response
 from tensorflow.keras.metrics import MeanAbsoluteError
 from tensorflow.keras.layers import Input
+import pickle
+import cloudpickle
+import ig_explainer
+from ig_explainer import integrated_gradients
 
 class Autoencoder:
     def __init__(self):
@@ -80,6 +84,108 @@ class CNN:
         return result
 
 
+class IGExplainer:
+    def __init__(self):
+        self.baseline = None
+        self.timesteps = None
+        self.m_steps = None
+        self.model = None
+        self.load_explainer()
+    
+    def load_explainer(self):
+        try:
+            # Load the CNN model
+            model_path = './ECG_classification_saved_model'
+            model_layer = keras.layers.TFSMLayer(model_path, call_endpoint='serving_default')
+            inputs = keras.Input(shape=(187, 1))
+            outputs = model_layer(inputs)
+            self.model = keras.Model(inputs, outputs)
+            
+            # Assign model to the global variable for gradient computation
+            ig_explainer.ig_explainer_callable = self.model
+            
+            # Load IG metadata
+            with open('ig_metadata.pkl', 'rb') as f:
+                data = cloudpickle.load(f)
+                self.baseline = data['baseline']    # shape (1, timesteps, 1)
+                self.timesteps = data['timesteps']  # e.g. 187
+                self.m_steps = data['m_steps']      # e.g. 50
+                
+        except Exception as e:
+            print(f"Error loading IG explainer: {e}")
+            self.baseline = None
+    
+    def explain_prediction(self, segment):
+        if self.baseline is None or self.model is None:
+            return None
+        
+        try:
+            # Ensure segment is exactly the right number of timesteps
+            if len(segment) != self.timesteps:
+                # Resize segment to match the expected timesteps
+                segment_resized = resample(segment, self.timesteps)
+            else:
+                segment_resized = segment
+            
+            # Prepare input: shape = (1, timesteps, 1)
+            x_input = segment_resized.reshape(1, self.timesteps, 1).astype(np.float32)
+            
+            # Get model predictions for IG computation
+            probs = self.model.predict(x_input, verbose=False)
+            if isinstance(probs, dict):
+                probs = probs['dense_5']  # Extract the dense_5 output
+            pred_idx = int(np.argmax(probs, axis=1)[0])
+            
+            class_names = ['S', 'V', 'F', 'Q']
+            pred_name = class_names[pred_idx]
+            
+            # Compute IG attributions
+            ig_attr = integrated_gradients(
+                x_input,
+                self.baseline.astype(np.float32),
+                target_class_idx=pred_idx,
+                m_steps=self.m_steps
+            )  # shape = (timesteps,)
+            
+            # Completeness check
+            f_x = probs[0, pred_idx]
+            f_baseline = self.model.predict(self.baseline, verbose=False)
+            if isinstance(f_baseline, dict):
+                f_baseline = f_baseline['dense_5']
+            f_baseline = f_baseline[0, pred_idx]
+            ig_sum = float(np.sum(ig_attr))
+            diff = float(abs((f_x - f_baseline) - ig_sum))
+            
+            # Convert to frontend-friendly format similar to LIME
+            explanation_data = {
+                'predicted_class': pred_name,
+                'class_index': pred_idx,
+                'probabilities': probs[0].tolist(),
+                'ig_attributions': ig_attr.tolist(),
+                'feature_importance': [
+                    {
+                        'feature': f"t{i}",
+                        'importance': float(attr)
+                    }
+                    for i, attr in enumerate(ig_attr)
+                ],
+                'local_prediction': probs[0].tolist(),
+                'completeness': {
+                    'f_x': float(f_x),
+                    'f_baseline': float(f_baseline),
+                    'f_x_minus_f_baseline': float(f_x - f_baseline),
+                    'sum_ig': ig_sum,
+                    'difference': diff
+                }
+            }
+            
+            return explanation_data
+            
+        except Exception as e:
+            print(f"Error generating IG explanation: {e}")
+            return None
+
+
 class PredictView(views.APIView):
     def post(self, request, *args, **kwargs):
         ecg = np.array(request.data.get("ecg"), dtype=float)
@@ -97,8 +203,11 @@ class PredictView(views.APIView):
             try:
                 segment = self.normalize_data(segments[i])
                 result = autoencoder.predict(segment, i)
+                
                 if(not result["isNormal"]):
                     result = cnn.predict(segment, i)
+                    # Store segment data for later explanation generation
+                    result["segment_data"] = segment.tolist()
 
                 results.append(result)
             except Exception as e:
@@ -154,3 +263,32 @@ class PredictView(views.APIView):
 
     def normalize_data(self, data):
         return (data - np.min(data)) / (np.max(data) - np.min(data))
+
+
+class ExplainView(views.APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            segment_data = request.data.get("segment_data")
+            
+            if not segment_data:
+                return Response({'error': 'segment_data is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Convert to numpy array and normalize
+            segment = np.array(segment_data, dtype=float)
+            
+            # Initialize IG explainer
+            ig_explainer = IGExplainer()
+            
+            if ig_explainer.baseline is None:
+                return Response({'error': 'IG explainer not available'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # Generate IG explanation
+            explanation = ig_explainer.explain_prediction(segment)
+            
+            if explanation:
+                return Response({"explanation": explanation}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Failed to generate explanation'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import ECGDataForm from "@/components/ecg_analysis/ECGDataForm";
 import { ECGFormDataType } from "@/types/ECGFormDataType";
-import { Prediction } from "@/types/Predtiction";
+import { Prediction } from "@/types/Prediction";
 import { useToast } from "@/hooks/use-toast";
 import ECGTabs from "@/components/ecg_analysis/ECGTabs";
 

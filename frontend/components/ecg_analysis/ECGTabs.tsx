@@ -5,7 +5,7 @@ import {
   AnomalyClasses,
   AnomalyClassesArray,
   Prediction,
-} from "@/types/Predtiction";
+} from "@/types/Prediction";
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Dispatch, SetStateAction } from "react";
