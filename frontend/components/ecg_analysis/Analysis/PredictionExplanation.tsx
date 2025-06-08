@@ -16,8 +16,6 @@ interface PredictionExplanationProps {
 export default function PredictionExplanation({ prediction, explanation, isLoading }: PredictionExplanationProps) {
   const chartRef = useRef<HTMLCanvasElement>(null);
 
-  const { feature_importance, completeness } = explanation!;
-  
   const originalProbabilities = [
     (prediction.S as number) / 100,
     (prediction.V as number) / 100, 
@@ -29,10 +27,12 @@ export default function PredictionExplanation({ prediction, explanation, isLoadi
   const class_names = ['S', 'V', 'F', 'Q'];
   const originalPredictedClass = class_names[originalPredIdx];
 
+  const { feature_importance, completeness } = explanation || { feature_importance: [], completeness: null };
+
   // Sort features by absolute importance for the details section
-  const sortedFeatures = [...feature_importance].sort(
+  const sortedFeatures = feature_importance.length > 0 ? [...feature_importance].sort(
     (a, b) => Math.abs(b.importance) - Math.abs(a.importance)
-  );
+  ) : [];
 
   useEffect(() => {
     if (!chartRef.current || !explanation) return;
@@ -133,7 +133,7 @@ export default function PredictionExplanation({ prediction, explanation, isLoadi
     return () => {
       chartInstance.destroy();
     };
-  }, [prediction, explanation]); 
+  }, [prediction, explanation, sortedFeatures]); 
 
   if (!explanation && !isLoading) {
     return (
@@ -207,28 +207,30 @@ export default function PredictionExplanation({ prediction, explanation, isLoadi
       </div>
 
       {/* Completeness Check */}
-      <div className="p-4 bg-blue-50 rounded-lg">
-        <h4 className="text-md font-semibold mb-2 text-blue-900">Explanation Accuracy Check</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-          <div>
-            <span className="font-medium text-blue-800">Prediction - Baseline:</span>
-            <div className="font-mono text-blue-900">{completeness.f_x_minus_f_baseline.toFixed(4)}</div>
-          </div>
-          <div>
-            <span className="font-medium text-blue-800">Sum of Attributions:</span>
-            <div className="font-mono text-blue-900">{completeness.sum_ig.toFixed(4)}</div>
-          </div>
-          <div>
-            <span className="font-medium text-blue-800">Difference:</span>
-            <div className={`font-mono ${completeness.difference < 0.01 ? 'text-green-600' : 'text-orange-600'}`}>
-              {completeness.difference.toFixed(4)}
+      {completeness && (
+        <div className="p-4 bg-blue-50 rounded-lg">
+          <h4 className="text-md font-semibold mb-2 text-blue-900">Explanation Accuracy Check</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div>
+              <span className="font-medium text-blue-800">Prediction - Baseline:</span>
+              <div className="font-mono text-blue-900">{completeness.f_x_minus_f_baseline.toFixed(4)}</div>
+            </div>
+            <div>
+              <span className="font-medium text-blue-800">Sum of Attributions:</span>
+              <div className="font-mono text-blue-900">{completeness.sum_ig.toFixed(4)}</div>
+            </div>
+            <div>
+              <span className="font-medium text-blue-800">Difference:</span>
+              <div className={`font-mono ${completeness.difference < 0.01 ? 'text-green-600' : 'text-orange-600'}`}>
+                {completeness.difference.toFixed(4)}
+              </div>
             </div>
           </div>
+          <p className="text-xs text-blue-700 mt-2">
+            A small difference indicates high fidelity of the explanation. Lower values are better.
+          </p>
         </div>
-        <p className="text-xs text-blue-700 mt-2">
-          A small difference indicates high fidelity of the explanation. Lower values are better.
-        </p>
-      </div>
+      )}
 
       {/* Feature Importance Details */}
       <div>
